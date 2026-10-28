@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-security-log-toolkit"
-version = "0.2.0"
+version = "0.3.0"
 description = "Offline security log analysis and investigation toolkit"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [{name = "Security Log Toolkit Contributors"}]
 keywords = ["cybersecurity", "log-analysis", "incident-response", "security-automation", "digital-forensics"]
-dependencies = []
+dependencies = ["PyYAML>=6.0.2,<7"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10"]

@@ -1,100 +1,123 @@
 # Python Security Automation & Log Correlation Toolkit
 
-An offline-first Python project for normalizing authentication logs, then adding security detections, correlation and incident-investigation workflows.
+An **offline-first, free** Python project for normalizing authentication logs and detecting suspicious login patterns. Developed primarily on Windows 11 with VS Code and Python 3.13.
 
-## Status
+## Project status
 
-**Version:** 0.2.0  
-**Current milestone:** Phase 2 — Linux / Windows ingestion and normalization
+**Version 0.3.0 — Phase 3: Detection Rules Engine**
 
-**Implemented:** Python package, CLI, Linux OpenSSH syslog parser, Windows Security XML parser (4624/4625), normalized UTC events, synthetic example data, pytest tests.
+Implemented:
 
-**Not implemented yet:** Detection rules, correlation, incident timelines, finding reports, CSV export, live Windows collection, direct binary `.evtx` parsing.
+- Linux OpenSSH syslog ingestion (`sshd` Accepted/Failed messages)
+- Windows Security XML ingestion (Event IDs **4624** and **4625**)
+- Unified, UTC-normalized authentication-event schema
+- YAML-configurable brute-force, password-spray, and successful-login-after-failures rules
+- Deterministic finding IDs, source event evidence, severity, and JSON output
+- Synthetic Linux and Windows attack datasets and automated tests
+- Git-friendly package and CLI (`status`, `parse`, `detect`)
 
-## Prerequisites
+**Not implemented:** Cross-event investigation timelines, incident correlation, CSV export, direct `.evtx` ingestion, live log monitoring, and production SIEM integrations. These are later phases.
 
-- Windows 11 / PowerShell / VS Code
-- Python 3.13+ (verified in Phase 0)
-- Git (optional for running; used for version control)
+## Setup / upgrade (Windows PowerShell)
 
-## Setup (Windows PowerShell)
-
-From the project root, create and use a project-only virtual environment:
+From `C:\Users\abmah\CyberSecurity-Projects\python-security-log-toolkit` with your existing `.venv`:
 
 ```powershell
-& "C:\Program Files\Python314\python.exe" -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m security_log_toolkit --version
+.\.venv\Scripts\python.exe -m pytest -v
 ```
 
-Your Python executable location may differ. Avoid recreating an already working `.venv`.
+The only new runtime dependency is **PyYAML**, used with `yaml.safe_load()` for safer configuration parsing. The project requires no API key or subscription.
 
-## Run the CLI
+## CLI: parse synthetic attack logs
+
+Traditional Linux syslog lacks a year/timezone, so supply both accurately:
 
 ```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit --help
-.\.venv\Scripts\python.exe -m security_log_toolkit status
+.\.venv\Scripts\python.exe -m security_log_toolkit parse linux samples/linux/attack_auth.log --year 2026 --utc-offset +08:00 --output reports/linux_attacks.json
 ```
 
-Parse Linux SSH authentication messages in traditional `/var/log/auth.log` syslog format:
+Windows Security XML already carries timezone-aware timestamps:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit parse windows samples/windows/attack_security.xml --output reports/windows_attacks.json
+```
+
+The original Phase 2 examples and `parse` commands still work:
 
 ```powershell
 .\.venv\Scripts\python.exe -m security_log_toolkit parse linux samples/linux/auth.log --year 2026 --utc-offset +08:00 --output reports/linux_normalized.json
-```
-
-Parse a Windows Security event XML export containing Event ID 4624 and 4625:
-
-```powershell
 .\.venv\Scripts\python.exe -m security_log_toolkit parse windows samples/windows/security.xml --output reports/windows_normalized.json
 ```
 
-Omit `--output` to print normalized JSON directly to the terminal.
+## CLI: detect suspicious logins
 
-**Important:** Traditional Linux syslog timestamps omit both year and timezone. Always supply the source log's actual year and UTC offset. Windows `SystemTime` timestamps include a timezone and are converted to UTC. Data is sorted chronologically within each input file.
+Run all three rules across both normalized datasets:
 
-## Normalized event schema
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit detect reports/linux_attacks.json reports/windows_attacks.json --rules config/detection_rules.yaml --output reports/phase3_findings.json
+```
 
-- `timestamp` — UTC ISO 8601 timestamp, ending with `Z`
-- `platform` — `linux` or `windows`
-- `event_type` — `login_success` or `login_failure`
-- `hostname`, `username` — target host and account
-- `source_ip`, `source_port` — IP and port; null when unavailable
-- `authentication_method` — e.g. `password`, `publickey`, or `NTLM`
-- `event_id` — `sshd`, `4624`, or `4625`
-- `record_id` — Windows EventRecordID, if available
-- `source_file`, `source_line` — original file reference, and line number for Linux
-- `details` — extra context such as Windows logon type/status or Linux invalid-user flag
+If you omit `--output`, the entire findings report prints as JSON. For CLI usage help:
 
-JSON contains `summary.records_examined`, `summary.normalized`, `summary.skipped`, `summary.login_success`, and `summary.login_failure`.
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit detect --help
+```
 
-## Supported input and limitations
+### Expected findings from the synthetic attacks
 
-- Linux: **syslog-style OpenSSH `sshd` Accepted/Failed password, publickey and keyboard-interactive/pam** events, UTF-8. Other lines are counted as skipped.
-- Windows: **UTF-8/UTF-16 XML** with a single `<Event>` or an `<Events>` root containing `<Event>` children in the Microsoft event XML namespace (or without namespace). Only IDs 4624/4625 are normalized; other IDs are counted as skipped.
-- Binary Windows `.evtx` files are **not supported yet**. Export records to XML before parsing.
-- XML must be a valid single document, not multiple standalone XML documents concatenated together.
-- `skipped` means out-of-scope or unrecognized records, **not** proof that each source log entry was fully understood. Recognized malformed records cause an explicit error.
-- Windows source IPs may be missing or `-` for local/service logons; null in the normalized event is correct.
-- Windows fractional timestamps are stored at Python's microsecond precision (more precise original fractions are truncated).
-- No detection alert is generated in this phase: parsing is not evidence of a threat.
+Six findings total: **2 brute-force**, **2 password-spray**, **2 successful logins after repeated failures**. The finding's evidence includes source event timestamps, account names, IP addresses, event IDs, source paths, and line/record identifiers when available. Reports are written under `reports/` and ignored by Git.
 
-## Tests
+## Rule configuration
+
+Edit `config/detection_rules.yaml` when adjusting thresholds. YAML fields are strictly validated:
+
+- `enabled`: true or false
+- `severity`: low, medium, high, critical
+- `window_minutes`: positive integer for the rolling time window
+- `min_failures`: positive integer
+- `min_distinct_accounts`: password-spray rule only, positive integer
+
+The three implemented rules are **fixed rule types**, not a general-purpose custom rule language. To switch off a detection, set its `enabled` field to `false` (leave its other fields present). Running detection never changes the YAML file.
+
+### Detection grouping and limitations
+
+- Brute force: a configurable number of failed logins against **one account**, from **one source IP**, on **one host/platform**, within a rolling time window.
+- Password spray: a configurable number of failures across distinct accounts from **one source IP**, on **one host/platform**, within a rolling window.
+- Success after failures: a successful login after enough recent failed attempts for the **same source IP, host and account**. A successful login resets the prior-failure sequence to reduce repeat alerts.
+- Overlapping qualifying windows for brute-force and spraying are merged into one finding, reducing alert spam. Distinct bursts separated by an inactive period can produce separate findings.
+- Windows account matching is case-insensitive and domain-aware; Linux account matching is case-sensitive.
+- Local logons with missing IPs are retained in normalized input but excluded from IP-based rules. They are counted under `summary.missing_source_ip_events`.
+- Duplicate identical normalized events across input files are deduplicated before detection. Everything is processed **in memory**, suitable for modest offline samples rather than huge enterprise datasets.
+- Rules use simple thresholds and **surface leads for human investigation**, not proof of compromise. Legitimate mistyping, penetration tests, proxies, NAT, shared sources and service activity can cause false positives or reduce attribution accuracy.
+- Multiple platform/host groups can be analyzed together, but **cross-host incident correlation is not implemented yet** (planned Phase 4).
+
+## Data formats
+
+`parse` consumes Linux OpenSSH-style syslog or Windows Security event XML (not binary `.evtx` files). Its JSON output has an `events` array containing UTC timestamps, host, platform, source IP, username, and other fields.
+
+`detect` consumes **one or more of these normalized JSON files** and outputs JSON with `summary` and `findings`. Each finding includes a stable `finding_id`, `rule_id`, severity, affected usernames, time range, evidence count, and the contributing evidence records.
+
+The synthetic IP addresses use RFC 5737 documentation-only IPv4 ranges. Never commit real credentials, tokens, or sensitive authentication logs to a public repository.
+
+## Validation
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v
 ```
 
+The test suite covers Phase 2 compatibility, configuration safety, expected attack findings, threshold boundaries, account/IP/host isolation, deduplication, invalid inputs and CLI output protection.
+
 ## Folder layout
 
-- `src/security_log_toolkit/` — Python code
-- `src/security_log_toolkit/parsers/` — source-specific parsers
-- `tests/` — test suite
-- `samples/linux/` and `samples/windows/` — entirely synthetic logs
-- `config/` — future detection rules
-- `reports/` — generated output (ignored by Git)
-
-## Privacy and security
-
-Only analyze logs that you own or are authorized to inspect. Real security logs can include usernames, IP addresses and other sensitive data. Do not commit genuine records to a public GitHub repository. The sample IPs use documentation-only ranges.
+- `src/security_log_toolkit/` — application package
+- `src/security_log_toolkit/parsers/` — Linux/Windows parsers
+- `src/security_log_toolkit/detection/` — YAML rules and detection engine
+- `config/detection_rules.yaml` — detection thresholds and severities
+- `samples/linux/`, `samples/windows/` — synthetic source logs
+- `tests/` — automated tests
+- `reports/` — generated JSON results, excluded from Git
 
 ## License
 

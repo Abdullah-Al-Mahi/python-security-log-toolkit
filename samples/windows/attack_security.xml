@@ -1,0 +1,295 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Events xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:00Z" />
+      <EventRecordID>4100</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55100</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:10Z" />
+      <EventRecordID>4101</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55101</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:20Z" />
+      <EventRecordID>4102</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55102</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:30Z" />
+      <EventRecordID>4103</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55103</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:40Z" />
+      <EventRecordID>4104</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55104</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4624</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:05:55Z" />
+      <EventRecordID>4110</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55106</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:07:00Z" />
+      <EventRecordID>4200</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Admin</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">203.0.113.60</Data>
+      <Data Name="IpPort">56000</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:07:10Z" />
+      <EventRecordID>4201</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Finance</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">203.0.113.60</Data>
+      <Data Name="IpPort">56001</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:07:20Z" />
+      <EventRecordID>4202</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">HelpDesk</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">203.0.113.60</Data>
+      <Data Name="IpPort">56002</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:07:30Z" />
+      <EventRecordID>4203</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Deploy</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">203.0.113.60</Data>
+      <Data Name="IpPort">56003</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:07:40Z" />
+      <EventRecordID>4204</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Auditor</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">203.0.113.60</Data>
+      <Data Name="IpPort">56004</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4624</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:08:00Z" />
+      <EventRecordID>4300</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">svc_backup</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">-</Data>
+      <Data Name="IpPort">0</Data>
+      <Data Name="LogonType">5</Data>
+      <Data Name="AuthenticationPackageName">Negotiate</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:08:10Z" />
+      <EventRecordID>4301</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Guest</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">192.0.2.99</Data>
+      <Data Name="IpPort">51003</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC000006A</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4624</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:08:30Z" />
+      <EventRecordID>4302</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Guest</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">192.0.2.99</Data>
+      <Data Name="IpPort">51004</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+    </EventData>
+  </Event>
+  <Event>
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" />
+      <EventID>4634</EventID>
+      <TimeCreated SystemTime="2026-10-28T18:09:00Z" />
+      <EventRecordID>4303</EventRecordID>
+      <Channel>Security</Channel>
+      <Computer>LAB-WIN11</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">Analyst</Data>
+      <Data Name="TargetDomainName">LAB</Data>
+      <Data Name="IpAddress">198.51.100.60</Data>
+      <Data Name="IpPort">55106</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+    </EventData>
+  </Event>
+</Events>

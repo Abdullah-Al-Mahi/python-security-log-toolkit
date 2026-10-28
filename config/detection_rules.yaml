@@ -1,0 +1,23 @@
+# Phase 3: offline authentication detection rules.
+# Times are rolling-window sizes in minutes, not fixed clock intervals.
+# Rules examine events with a source IP; missing-IP local events are not matched.
+version: 1
+rules:
+  brute_force:
+    enabled: true
+    severity: high
+    window_minutes: 5
+    min_failures: 5
+
+  password_spray:
+    enabled: true
+    severity: high
+    window_minutes: 5
+    min_failures: 5
+    min_distinct_accounts: 5
+
+  success_after_failures:
+    enabled: true
+    severity: critical
+    window_minutes: 10
+    min_failures: 4

@@ -1,0 +1,16 @@
+Oct 29 02:00:00 lab-linux sshd[2100]: Failed password for alice from 198.51.100.77 port 51001 ssh2
+Oct 29 02:00:10 lab-linux sshd[2101]: Failed password for alice from 198.51.100.77 port 51002 ssh2
+Oct 29 02:00:20 lab-linux sshd[2102]: Failed password for alice from 198.51.100.77 port 51003 ssh2
+Oct 29 02:00:30 lab-linux sshd[2103]: Failed password for alice from 198.51.100.77 port 51004 ssh2
+Oct 29 02:00:40 lab-linux sshd[2104]: Failed password for alice from 198.51.100.77 port 51005 ssh2
+Oct 29 02:00:55 lab-linux sshd[2110]: Accepted password for alice from 198.51.100.77 port 51006 ssh2
+Oct 29 02:02:00 lab-linux sshd[2200]: Failed password for invalid user admin from 203.0.113.88 port 52001 ssh2
+Oct 29 02:02:10 lab-linux sshd[2201]: Failed password for invalid user finance from 203.0.113.88 port 52002 ssh2
+Oct 29 02:02:20 lab-linux sshd[2202]: Failed password for invalid user helpdesk from 203.0.113.88 port 52003 ssh2
+Oct 29 02:02:30 lab-linux sshd[2203]: Failed password for invalid user deploy from 203.0.113.88 port 52004 ssh2
+Oct 29 02:02:40 lab-linux sshd[2204]: Failed password for invalid user auditor from 203.0.113.88 port 52005 ssh2
+Oct 29 02:03:00 lab-linux sshd[2250]: Accepted publickey for deploy from 192.0.2.33 port 54000 ssh2: ED25519 SHA256:SYNTHETIC
+Oct 29 02:03:10 lab-linux sshd[2251]: Failed password for bob from 192.0.2.34 port 54001 ssh2
+Oct 29 02:03:15 lab-linux sshd[2252]: Accepted password for bob from 192.0.2.34 port 54002 ssh2
+Oct 29 02:03:20 other-linux sshd[2253]: Failed password for alice from 198.51.100.77 port 51007 ssh2
+Oct 29 02:03:40 lab-linux sudo: alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/id
