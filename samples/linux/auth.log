@@ -1,0 +1,9 @@
+Oct 29 02:10:00 lab-linux sshd[1201]: Failed password for invalid user admin from 198.51.100.23 port 50101 ssh2
+Oct 29 02:10:07 lab-linux sshd[1202]: Failed password for root from 198.51.100.23 port 50102 ssh2
+Oct 29 02:10:15 lab-linux sshd[1203]: Failed publickey for deploy from 198.51.100.23 port 50103 ssh2
+Oct 29 02:10:22 lab-linux sshd[1204]: Accepted publickey for deploy from 192.0.2.10 port 49811 ssh2: ED25519 SHA256:SYNTHTESTONLY
+Oct 29 02:10:36 lab-linux sshd[1205]: Accepted password for analyst from 203.0.113.7 port 51200 ssh2
+Oct 29 02:11:00 lab-linux sudo: analyst : TTY=pts/0 ; PWD=/home/analyst ; USER=root ; COMMAND=/usr/bin/id
+Oct 29 02:11:02 lab-linux sshd[1206]: Invalid user guest from 198.51.100.23 port 50104
+Oct 29 02:11:05 lab-linux sshd[1207]: Failed password for invalid user guest from 198.51.100.23 port 50104 ssh2
+Oct 29 02:12:00 lab-linux sshd[1208]: Accepted password for root from 2001:db8::42 port 49000 ssh2

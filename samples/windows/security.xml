@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Events xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-10-28T18:10:03.1234567Z"/><EventRecordID>3101</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">analyst</Data><Data Name="TargetDomainName">LAB</Data><Data Name="IpAddress">198.51.100.23</Data><Data Name="IpPort">50200</Data><Data Name="LogonType">3</Data><Data Name="AuthenticationPackageName">NTLM</Data><Data Name="Status">0xC000006D</Data><Data Name="SubStatus">0xC000006A</Data><Data Name="WorkstationName">CLIENT-1</Data></EventData>
+  </Event>
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-10-28T18:10:13Z"/><EventRecordID>3102</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">analyst</Data><Data Name="TargetDomainName">LAB</Data><Data Name="IpAddress">198.51.100.23</Data><Data Name="IpPort">50201</Data><Data Name="LogonType">3</Data><Data Name="AuthenticationPackageName">NTLM</Data><Data Name="Status">0xC000006D</Data><Data Name="SubStatus">0xC000006A</Data></EventData>
+  </Event>
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4624</EventID><TimeCreated SystemTime="2026-10-28T18:10:29Z"/><EventRecordID>3103</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">analyst</Data><Data Name="TargetDomainName">LAB</Data><Data Name="IpAddress">198.51.100.23</Data><Data Name="IpPort">50202</Data><Data Name="LogonType">3</Data><Data Name="AuthenticationPackageName">NTLM</Data></EventData>
+  </Event>
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4624</EventID><TimeCreated SystemTime="2026-10-28T18:11:05Z"/><EventRecordID>3104</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">svc_backup</Data><Data Name="TargetDomainName">LAB</Data><Data Name="IpAddress">-</Data><Data Name="IpPort">0</Data><Data Name="LogonType">5</Data><Data Name="AuthenticationPackageName">Negotiate</Data></EventData>
+  </Event>
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4625</EventID><TimeCreated SystemTime="2026-10-28T18:11:20Z"/><EventRecordID>3105</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">Administrator</Data><Data Name="TargetDomainName">LAB</Data><Data Name="IpAddress">2001:db8::5</Data><Data Name="IpPort">53220</Data><Data Name="LogonType">3</Data><Data Name="AuthenticationPackageName">Negotiate</Data><Data Name="Status">0xC000006D</Data></EventData>
+  </Event>
+  <Event>
+    <System><Provider Name="Microsoft-Windows-Security-Auditing"/><EventID>4634</EventID><TimeCreated SystemTime="2026-10-28T18:12:00Z"/><EventRecordID>3106</EventRecordID><Channel>Security</Channel><Computer>LAB-WIN11</Computer></System>
+    <EventData><Data Name="TargetUserName">analyst</Data></EventData>
+  </Event>
+</Events>

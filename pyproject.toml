@@ -1,31 +1,20 @@
-
 [build-system]
 requires = ["setuptools>=75,<82"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-security-log-toolkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Offline security log analysis and investigation toolkit"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
-authors = [
-    {name = "Security Log Toolkit Contributors"}
-]
-keywords = [
-    "cybersecurity",
-    "log-analysis",
-    "incident-response",
-    "security-automation",
-    "digital-forensics"
-]
+authors = [{name = "Security Log Toolkit Contributors"}]
+keywords = ["cybersecurity", "log-analysis", "incident-response", "security-automation", "digital-forensics"]
 dependencies = []
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8,<10"
-]
+dev = ["pytest>=8,<10"]
 
 [project.scripts]
 security-log = "security_log_toolkit.cli:main"

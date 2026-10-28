@@ -1,86 +1,81 @@
-
 # Python Security Automation & Log Correlation Toolkit
 
-A modular, offline-first Python application for security log analysis,
-threat detection, event correlation, and incident investigation.
+An offline-first Python project for normalizing authentication logs, then adding security detections, correlation and incident-investigation workflows.
 
-## Project Status
+## Status
 
-**Version:** 0.1.0  
-**Current milestone:** Phase 1 - Project foundation
+**Version:** 0.2.0  
+**Current milestone:** Phase 2 — Linux / Windows ingestion and normalization
 
-The initial CLI and automated smoke tests are implemented.
-Log parsing, detection, correlation, and reporting are planned
-for future development phases.
+**Implemented:** Python package, CLI, Linux OpenSSH syslog parser, Windows Security XML parser (4624/4625), normalized UTC events, synthetic example data, pytest tests.
 
-## Planned Features
+**Not implemented yet:** Detection rules, correlation, incident timelines, finding reports, CSV export, live Windows collection, direct binary `.evtx` parsing.
 
-- Linux SSH and authentication log parsing
-- Windows authentication/security event parsing
-- Unified, normalized security event schema
-- Configurable detection rules
-- Brute-force and password-spraying detection
-- Suspicious authentication sequence analysis
-- Event correlation by account, source IP, and time
-- Investigation timelines
-- CSV and JSON exports
-- Professional command-line interface
-- Automated unit and integration testing
+## Prerequisites
 
-## Technology
-
-- Python 3.13+
-- Python standard library
-- pytest
-- Git
-- Visual Studio Code
-
-## Platform
-
-Developed and tested primarily on Windows 11.
-
-The core analysis workflow is designed for offline log files.
-No external APIs, subscriptions, or cloud services are required.
+- Windows 11 / PowerShell / VS Code
+- Python 3.13+ (verified in Phase 0)
+- Git (optional for running; used for version control)
 
 ## Setup (Windows PowerShell)
 
-From the project root, create a virtual environment:
+From the project root, create and use a project-only virtual environment:
 
 ```powershell
 & "C:\Program Files\Python314\python.exe" -m venv .venv
-```
-
-Install the project and development dependencies:
-
-```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-## CLI Usage
+Your Python executable location may differ. Avoid recreating an already working `.venv`.
 
-Display help:
+## Run the CLI
 
 ```powershell
 .\.venv\Scripts\python.exe -m security_log_toolkit --help
-```
-
-Display version:
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit --version
-```
-
-Check installation status:
-
-```powershell
 .\.venv\Scripts\python.exe -m security_log_toolkit status
 ```
 
-After installation, you can also use the console entry point:
+Parse Linux SSH authentication messages in traditional `/var/log/auth.log` syslog format:
 
 ```powershell
-.\.venv\Scripts\security-log.exe status
+.\.venv\Scripts\python.exe -m security_log_toolkit parse linux samples/linux/auth.log --year 2026 --utc-offset +08:00 --output reports/linux_normalized.json
 ```
+
+Parse a Windows Security event XML export containing Event ID 4624 and 4625:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit parse windows samples/windows/security.xml --output reports/windows_normalized.json
+```
+
+Omit `--output` to print normalized JSON directly to the terminal.
+
+**Important:** Traditional Linux syslog timestamps omit both year and timezone. Always supply the source log's actual year and UTC offset. Windows `SystemTime` timestamps include a timezone and are converted to UTC. Data is sorted chronologically within each input file.
+
+## Normalized event schema
+
+- `timestamp` — UTC ISO 8601 timestamp, ending with `Z`
+- `platform` — `linux` or `windows`
+- `event_type` — `login_success` or `login_failure`
+- `hostname`, `username` — target host and account
+- `source_ip`, `source_port` — IP and port; null when unavailable
+- `authentication_method` — e.g. `password`, `publickey`, or `NTLM`
+- `event_id` — `sshd`, `4624`, or `4625`
+- `record_id` — Windows EventRecordID, if available
+- `source_file`, `source_line` — original file reference, and line number for Linux
+- `details` — extra context such as Windows logon type/status or Linux invalid-user flag
+
+JSON contains `summary.records_examined`, `summary.normalized`, `summary.skipped`, `summary.login_success`, and `summary.login_failure`.
+
+## Supported input and limitations
+
+- Linux: **syslog-style OpenSSH `sshd` Accepted/Failed password, publickey and keyboard-interactive/pam** events, UTF-8. Other lines are counted as skipped.
+- Windows: **UTF-8/UTF-16 XML** with a single `<Event>` or an `<Events>` root containing `<Event>` children in the Microsoft event XML namespace (or without namespace). Only IDs 4624/4625 are normalized; other IDs are counted as skipped.
+- Binary Windows `.evtx` files are **not supported yet**. Export records to XML before parsing.
+- XML must be a valid single document, not multiple standalone XML documents concatenated together.
+- `skipped` means out-of-scope or unrecognized records, **not** proof that each source log entry was fully understood. Recognized malformed records cause an explicit error.
+- Windows source IPs may be missing or `-` for local/service logons; null in the normalized event is correct.
+- Windows fractional timestamps are stored at Python's microsecond precision (more precise original fractions are truncated).
+- No detection alert is generated in this phase: parsing is not evidence of a threat.
 
 ## Tests
 
@@ -88,23 +83,19 @@ After installation, you can also use the console entry point:
 .\.venv\Scripts\python.exe -m pytest -v
 ```
 
-## Project Organization
+## Folder layout
 
-- `src/security_log_toolkit/` - Main Python package
-- `tests/` - Automated tests
-- `samples/linux/` - Synthetic Linux log datasets
-- `samples/windows/` - Synthetic Windows event datasets
-- `config/` - Detection and application configuration
-- `reports/` - Generated outputs
-- `.vscode/` - Development environment settings
+- `src/security_log_toolkit/` — Python code
+- `src/security_log_toolkit/parsers/` — source-specific parsers
+- `tests/` — test suite
+- `samples/linux/` and `samples/windows/` — entirely synthetic logs
+- `config/` — future detection rules
+- `reports/` — generated output (ignored by Git)
 
-## Privacy and Safety
+## Privacy and security
 
-Use synthetic or properly authorized log data.
-
-Do not commit real usernames, credentials, personal information,
-authentication tokens, or sensitive incident records.
+Only analyze logs that you own or are authorized to inspect. Real security logs can include usernames, IP addresses and other sensitive data. Do not commit genuine records to a public GitHub repository. The sample IPs use documentation-only ranges.
 
 ## License
 
-MIT License. See `LICENSE`.
+MIT — see `LICENSE`.
