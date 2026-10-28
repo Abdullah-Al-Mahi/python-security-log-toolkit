@@ -1,0 +1,53 @@
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data and generated reports
+reports/*
+!reports/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+
+# OS and editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# Sample logs under samples/ may be deliberately tracked
+!samples/**/*.log
