@@ -1,0 +1,17 @@
+[server]
+address = "127.0.0.1"
+headless = true
+enableCORS = true
+enableXsrfProtection = true
+maxUploadSize = 16
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#35BCA6"
+backgroundColor = "#0A101B"
+secondaryBackgroundColor = "#101E2E"
+textColor = "#ECF5FF"
+font = "sans serif"

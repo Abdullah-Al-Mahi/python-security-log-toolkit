@@ -108,5 +108,5 @@ def test_benchmark_cannot_overwrite_correlation_config(capsys):
 def test_phase8_status_message(capsys):
     assert main(["status"]) == 0
     text = capsys.readouterr().out
-    assert "Phase 9" in text
+    assert "Phase 10" in text
     assert "Security validation" in text

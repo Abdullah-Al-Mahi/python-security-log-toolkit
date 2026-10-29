@@ -15,8 +15,8 @@ subscriptions, or public deployment are needed.
 | 6 | Advanced CLI & configuration | Complete | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
 | 7 | CSV/JSON reporting and exports | Complete | Shared export adapters for CLI and browser downloads |
 | 8 | Comprehensive security/scale/edge-case validation | Complete | Input-hardening and stable service contracts |
-| 9 | GitHub portfolio, docs and demo scenarios | **Current** | Reproducible offline demonstrations |
-| 10 | Modern local web dashboard | **Required** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
+| 9 | GitHub portfolio, docs and demo scenarios | Complete | Reproducible offline demonstrations |
+| 10 | Modern local web dashboard | **Implemented; Windows verification pending** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
 
 ## Phase 6 interfaces
 
@@ -39,9 +39,9 @@ report = analyze_raw_logs(
 which also powers the existing file-based `investigate()` function.
 The services are framework-neutral and return data rather than printing output.
 
-### Phase 10 UI direction (design contract)
+### Phase 10 UI implementation
 
-The local dashboard will display:
+The local dashboard now includes:
 
 - Upload of Linux `.log`/Windows `.xml` files with year/UTC inputs when needed
 - Analysis summary cards, charts for outcomes and rule severity
@@ -68,8 +68,7 @@ private local use requires no external hosting.
 `security_log_toolkit.reporting.build_report_tables(report)` returns Python
 row lists suitable for charts, tables and filters. `build_export_artifacts(report,
 fmt)` returns deterministic in-memory bytes for CSV/JSON downloads, and
-`write_export_bundle()` writes them safely for the CLI. A Streamlit dashboard
-will call these services directly — no backend HTTP service is necessary.
+`write_export_bundle()` writes them safely for the CLI. The Streamlit dashboard calls these services directly — no backend HTTP service is necessary.
 
 CSV sheets share `incident_id`, `finding_id`, and `evidence_id` references;
 timeline rows show linked evidence, **not complete security event history**.
@@ -98,3 +97,12 @@ See `docs/SECURITY_VALIDATION_GUIDE.md`.
 - Private-by-default publication checklist and Phase 10 Streamlit handoff.
 
 Phase 10 remains REQUIRED, with the local CLI and existing services retained.
+
+## Phase 10 browser implementation
+
+- `dashboard/app.py`: responsive Streamlit interface with dark visual design and seven workspaces.
+- `security_log_toolkit.dashboard.service`: framework-neutral upload validation, temporary file processing, incident filters and CSV/JSON ZIP download bytes.
+- `.streamlit/config.toml`: loopback-only binding, XSRF/CORS enabled, usage stats disabled.
+- `docs/WEB_DASHBOARD_GUIDE.md`: complete setup, privacy limitations and manual Windows acceptance checklist.
+
+The dashboard code is implemented but **must pass the owner's Windows 11 browser acceptance** before the entire project is declared complete. The CLI remains a first-class supported interface.

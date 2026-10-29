@@ -27,14 +27,14 @@ def artifacts():
 
 
 def test_version_phase9():
-    assert __version__ == "0.9.0"
+    assert __version__ == "1.0.0"
 
 
 def test_demo_report_counts(artifacts):
     report = json.loads(artifacts["investigation.json"])
     for key, expected in EXPECTED.items():
         assert report["summary"][key] == expected
-    assert report["tool_version"] == "0.9.0"
+    assert report["tool_version"] == "1.0.0"
 
 
 def test_validation_synthetic_count(artifacts):
@@ -212,9 +212,10 @@ def test_manual_ci_has_no_push_trigger():
     assert "push:" not in workflow
 
 
-def test_readme_does_not_claim_dashboard_exists():
+def test_readme_describes_implemented_dashboard_and_pending_acceptance():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "not yet implemented" in readme
+    assert "Dashboard code implemented" in readme
+    assert "browser acceptance" in readme
     assert "Phase 10" in readme
 
 

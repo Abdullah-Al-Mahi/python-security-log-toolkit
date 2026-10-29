@@ -1,6 +1,6 @@
 # Phase 8 — Security, accuracy and performance validation
 
-Introduced in **0.8.0** and retained in **0.9.0**. All examples are offline and free. Use Windows PowerShell from
+Introduced in **0.8.0** and retained in **1.0.0**. All examples are offline and free. Use Windows PowerShell from
 `C:\Users\abmah\CyberSecurity-Projects\python-security-log-toolkit`.
 
 ## Scope and explicit limitations

@@ -7,7 +7,7 @@ privacy. The synthetic test IPs are reserved examples.
 
 | Suggested screenshot | How to obtain | What the caption should say |
 |---|---|---|
-| CLI ready | `security_log_toolkit status` and `doctor` | Tested local backend, v0.9.0 |
+| CLI ready | `security_log_toolkit status` and `doctor` | Tested local backend, v1.0.0 |
 | Investigation summary | Open `reports/phase9_demo/analyst_summary.txt` | Synthetic evidence-driven investigation |
 | Incidents table | Import `reports/phase9_demo/export/incidents.csv` | Four correlated/single-finding synthetic incidents |
 | Linked timeline | Open `reports/phase9_demo/export/timelines.csv` | Chronological *linked* evidence, not whole-log history |

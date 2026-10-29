@@ -1,6 +1,6 @@
 # Phase 10 — Modern Web Dashboard implementation handoff (REQUIRED)
 
-This is a design contract, **not an implemented interface**. The CLI must remain
+This was the design contract; the interface is now implemented in `dashboard/app.py` and uses `security_log_toolkit.dashboard.service` to reuse the existing backend. Browser acceptance is pending. The CLI must remain
 functional in Phase 10. The UI should run locally with free Streamlit and bind
 to `127.0.0.1` by default. No public hosting, analytics trackers, or private
 log uploads should be required.
@@ -58,3 +58,7 @@ The dashboard must run **locally for free**, handle the bundled synthetic
 Linux/Windows demo, expose usable investigation and reporting views, preserve
 all previous CLI commands, and pass functional plus security regression tests.
 Do not claim the dashboard is complete until user verifies it on Windows 11.
+
+## Implementation reference
+
+See `docs/WEB_DASHBOARD_GUIDE.md` for exact installation commands, session-only configuration controls, seven UI workspaces, browser acceptance checklist and privacy limitations.

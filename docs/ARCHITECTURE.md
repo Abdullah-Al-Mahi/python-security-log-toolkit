@@ -1,11 +1,11 @@
 # Architecture and trust boundaries
 
-**Phase 9 | Python Security Automation & Log Correlation Toolkit | v0.9.0**
+**Phase 10 | Python Security Automation & Log Correlation Toolkit | v1.0.0 (verification pending)**
 
 The project is deliberately **offline-first** and framework-neutral. Its Python
 services do not need Streamlit, web hosting, paid APIs, or an external database.
-The CLI is operational. The **Phase 10 dashboard is planned and REQUIRED**, not
-implemented yet. All inputs are local files and YAML configurations.
+The CLI remains operational. The **Phase 10 local dashboard is implemented**
+using shared services. All processing uses local files and YAML configurations.
 
 ## Processing pipeline
 
@@ -24,7 +24,7 @@ flowchart TD
     I --> R[JSON investigation report]
     R --> E[CSV / JSON export engine]
     E --> CLI[CLI: report and export]
-    E --> DASH[Phase 10 Streamlit dashboard - planned]
+    E --> DASH[Sentinel Streamlit dashboard - local]
     CFG[Config files] --> D
     CFG --> C
 ```
@@ -44,6 +44,8 @@ Editable diagram source: [`diagrams/architecture.mmd`](diagrams/architecture.mmd
 | `reporting/export.py` | Validated summary, CSV/JSON bytes, integrity manifest | `build_report_tables()`, `build_export_artifacts()` |
 | `quality/accuracy.py`, `quality/benchmark.py` | Scenario-label checks and bounded in-memory throughput | `evaluate_scenarios()`, `run_benchmark()` |
 | `portfolio.py` | Reproducible demo artifacts from *synthetic* logs | `build_portfolio_artifacts()` |
+| `dashboard/service.py` | Safe temporary uploads, session-only rule YAML, filtering, ZIP export | `analyze_uploaded_sources()`, `build_dashboard_zip()` |
+| `dashboard/app.py` | Streamlit presentation; loopback-only server settings | Local browser app |
 | `cli.py` | Terminal flags and file I/O; no duplicated detector implementation | `main()` |
 
 ## Investigation sequence
