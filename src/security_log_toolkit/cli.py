@@ -1,4 +1,4 @@
-"""Command-line interface: existing parsing plus offline security detection."""
+"""Command-line interface for parsing, detection and incident correlation."""
 
 import argparse
 import json
@@ -7,6 +7,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from security_log_toolkit import __version__
+from security_log_toolkit.correlation import investigate
 from security_log_toolkit.detection import (
     detect_events,
     detection_report,
@@ -17,7 +18,7 @@ from security_log_toolkit.ingest import ingest_file
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Create the CLI parser, retaining Phase 1 and Phase 2 arguments."""
+    """Create the CLI without breaking older supported commands."""
     parser = argparse.ArgumentParser(
         prog="security-log",
         description=(
@@ -48,6 +49,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="YAML detection configuration (default: config/detection_rules.yaml)",
     )
     detect.add_argument("--output", type=Path, help="Optional destination for findings JSON")
+
+    correlate = commands.add_parser(
+        "correlate", help="Group detection findings into incident-level cases."
+    )
+    correlate.add_argument(
+        "inputs", nargs="+", type=Path, help="Paths to normalized Phase 2 JSON files"
+    )
+    correlate.add_argument(
+        "--rules", type=Path, default=Path("config/detection_rules.yaml"),
+        help="YAML detection rules (default: config/detection_rules.yaml)",
+    )
+    correlate.add_argument(
+        "--correlation-config", type=Path,
+        default=Path("config/correlation_rules.yaml"),
+        help="YAML correlation settings (default: config/correlation_rules.yaml)",
+    )
+    correlate.add_argument("--output", type=Path, help="Optional JSON incident report destination")
     return parser
 
 
@@ -56,8 +74,13 @@ def _write_json(output: Path, data: dict) -> None:
     output.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _assert_safe_output(output: Path | None, protected: list[Path]) -> None:
+    if output and any(output.resolve() == path.resolve() for path in protected):
+        raise ValueError("--output must not overwrite input files or YAML configuration files")
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Run the CLI and return an exit code without hiding actionable errors."""
+    """Execute one command and return a process-compatible status code."""
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -66,12 +89,12 @@ def main(argv: list[str] | None = None) -> int:
         print("--------------------")
         print(f"Version: {__version__}")
         print("Installation: OK")
-        print("Current milestone: Phase 3")
+        print("Current milestone: Phase 4")
         print("Log parsing: Linux SSH and Windows XML available")
         print("Normalization: Available")
         print("Detection engine: 3 configurable rules available")
-        print("Event correlation: Not implemented")
-        print("Investigation reporting: Not implemented")
+        print("Event correlation: Incident grouping available")
+        print("Investigation reporting: Basic incident JSON available; timelines planned Phase 5")
         return 0
 
     if args.command == "parse":
@@ -99,9 +122,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "detect":
         try:
-            protected = [*args.inputs, args.rules]
-            if args.output and any(args.output.resolve() == file.resolve() for file in protected):
-                raise ValueError("--output must not overwrite input files or the YAML rules file")
+            _assert_safe_output(args.output, [*args.inputs, args.rules])
             settings = load_detection_config(args.rules)
             events, duplicates = load_normalized_events(args.inputs)
             findings = detect_events(events, settings)
@@ -113,6 +134,34 @@ def main(argv: list[str] | None = None) -> int:
                     f"({duplicates} duplicate events skipped)."
                 )
                 print(f"Saved findings JSON: {args.output}")
+            else:
+                print(json.dumps(data, indent=2, ensure_ascii=False))
+            return 0
+        except (OSError, ValueError) as exc:
+            print(f"security-log: error: {exc}", file=sys.stderr)
+            return 2
+
+    if args.command == "correlate":
+        try:
+            _assert_safe_output(
+                args.output, [*args.inputs, args.rules, args.correlation_config]
+            )
+            data = investigate(
+                args.inputs,
+                detection_rules=args.rules,
+                correlation_rules=args.correlation_config,
+            )
+            if args.output:
+                _write_json(args.output, data)
+                summary = data["summary"]
+                print(
+                    f"Analyzed {summary['events_analyzed']} events and "
+                    f"{summary['findings_analyzed']} findings; "
+                    f"created {summary['total_incidents']} incidents "
+                    f"({summary['correlated_incidents']} correlated, "
+                    f"{summary['single_finding_incidents']} single-finding)."
+                )
+                print(f"Saved incident JSON: {args.output}")
             else:
                 print(json.dumps(data, indent=2, ensure_ascii=False))
             return 0

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
+from security_log_toolkit import __version__
 from security_log_toolkit.detection.config import DetectionConfig, RuleSettings
 from security_log_toolkit.events import SecurityEvent
 
@@ -204,7 +205,7 @@ def detection_report(
     """Serialize findings together with useful analysis metadata."""
     serialized = [finding.to_dict() for finding in findings]
     return {
-        "tool_version": "0.3.0",
+        "tool_version": __version__,
         "input_files": [str(path) for path in input_files],
         "rules_file": str(config_file),
         "summary": {

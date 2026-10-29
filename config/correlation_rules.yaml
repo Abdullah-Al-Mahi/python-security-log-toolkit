@@ -1,0 +1,6 @@
+# Phase 4 incident grouping: times are in minutes, not seconds.
+# Do not change defaults until the baseline tests pass.
+version: 1
+correlation:
+  max_gap_minutes: 15
+  max_incident_minutes: 60

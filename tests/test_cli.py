@@ -1,4 +1,4 @@
-"""Regression tests for the CLI, including Phase 1/2 compatibility."""
+"""End-to-end regression tests for CLI phases 1 through 4."""
 
 import json
 import subprocess
@@ -13,10 +13,11 @@ from security_log_toolkit.cli import build_parser, main
 ROOT = Path(__file__).resolve().parents[1]
 SAMPLES = ROOT / "samples"
 RULES = ROOT / "config" / "detection_rules.yaml"
+CORRELATION = ROOT / "config" / "correlation_rules.yaml"
 
 
 def test_version_is_defined():
-    assert __version__ == "0.3.0"
+    assert __version__ == "0.4.0"
 
 
 def test_parser_program_name():
@@ -28,7 +29,7 @@ def test_help_command(capsys):
         main(["--help"])
     assert info.value.code == 0
     output = capsys.readouterr().out
-    for command in ("security-log", "status", "parse", "detect"):
+    for command in ("security-log", "status", "parse", "detect", "correlate"):
         assert command in output
 
 
@@ -36,9 +37,10 @@ def test_status_command(capsys):
     assert main(["status"]) == 0
     output = capsys.readouterr().out
     assert "Installation: OK" in output
-    assert "Current milestone: Phase 3" in output
+    assert "Current milestone: Phase 4" in output
     assert "Log parsing: Linux SSH and Windows XML available" in output
     assert "Detection engine: 3 configurable rules available" in output
+    assert "Event correlation: Incident grouping available" in output
 
 
 def test_default_command_displays_help(capsys):
@@ -151,5 +153,59 @@ def test_detect_does_not_overwrite_input(tmp_path, capsys):
     input_file.write_text('{"events": []}', encoding="utf-8")
     assert main([
         "detect", str(input_file), "--rules", str(RULES), "--output", str(input_file)
+    ]) == 2
+    assert "must not overwrite" in capsys.readouterr().err
+
+
+def test_correlate_sample_datasets(tmp_path, capsys):
+    linux = tmp_path / "linux.json"
+    windows = tmp_path / "windows.json"
+    incidents = tmp_path / "incidents.json"
+    assert main([
+        "parse", "linux", str(SAMPLES / "linux" / "attack_auth.log"),
+        "--year", "2026", "--utc-offset", "+08:00", "--output", str(linux),
+    ]) == 0
+    assert main([
+        "parse", "windows", str(SAMPLES / "windows" / "attack_security.xml"),
+        "--output", str(windows),
+    ]) == 0
+    assert main([
+        "correlate", str(linux), str(windows),
+        "--rules", str(RULES), "--correlation-config", str(CORRELATION),
+        "--output", str(incidents),
+    ]) == 0
+    report = json.loads(incidents.read_text(encoding="utf-8"))
+    assert report["summary"]["events_analyzed"] == 29
+    assert report["summary"]["findings_analyzed"] == 6
+    assert report["summary"]["total_incidents"] == 4
+    assert report["summary"]["correlated_incidents"] == 2
+    assert report["summary"]["single_finding_incidents"] == 2
+    assert "Saved incident JSON" in capsys.readouterr().out
+
+
+def test_correlate_stdout_json(tmp_path, capsys):
+    source = tmp_path / "empty.json"
+    source.write_text('{"events": []}', encoding="utf-8")
+    assert main(["correlate", str(source), "--rules", str(RULES),
+                 "--correlation-config", str(CORRELATION)]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["summary"]["total_incidents"] == 0
+
+
+def test_correlate_missing_input(capsys):
+    assert main(["correlate", "does-not-exist.json", "--rules", str(RULES),
+                 "--correlation-config", str(CORRELATION)]) == 2
+    assert "error:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("protected", ["input", "rules", "correlation"])
+def test_correlate_prevents_overwriting(tmp_path, capsys, protected):
+    input_file = tmp_path / "events.json"
+    input_file.write_text('{"events": []}', encoding="utf-8")
+    targets = {"input": input_file, "rules": RULES, "correlation": CORRELATION}
+    assert main([
+        "correlate", str(input_file), "--rules", str(RULES),
+        "--correlation-config", str(CORRELATION),
+        "--output", str(targets[protected]),
     ]) == 2
     assert "must not overwrite" in capsys.readouterr().err
