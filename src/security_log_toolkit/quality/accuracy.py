@@ -5,7 +5,7 @@ The manifest enumerates expected (rule, source_ip) labels per test scenario.
 """
 import json
 from ipaddress import ip_address
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from security_log_toolkit.detection import detect_events, load_detection_config
 from security_log_toolkit.ingest import ingest_file
@@ -81,9 +81,22 @@ def evaluate_scenarios(
         kind = scenario.get("format")
         if kind not in ("linux", "windows"):
             raise ValueError(f"{name}: format must be linux or windows")
-        relative = Path(_string(scenario.get("file"), "scenario file"))
-        if relative.is_absolute() or ".." in relative.parts:
+        # Validate both pathname conventions, regardless of the host OS.
+        # WindowsPath("/etc/passwd") is root-relative but not is_absolute(),
+        # while PosixPath("C:\\Windows") treats a drive as plain text.
+        # Using both PurePath variants makes the manifest portable and keeps
+        # rooted, drive-qualified, UNC, and traversal paths out of samples_dir.
+        file_value = _string(scenario.get("file"), "scenario file")
+        posix_path = PurePosixPath(file_value)
+        windows_path = PureWindowsPath(file_value)
+        if (
+            posix_path.is_absolute()
+            or bool(windows_path.anchor)
+            or ".." in posix_path.parts
+            or ".." in windows_path.parts
+        ):
             raise ValueError(f"{name}: file must be relative to samples directory")
+        relative = Path(file_value)
         path = (sample_root / relative).resolve()
         if not path.is_relative_to(sample_root):
             raise ValueError(f"{name}: file must stay inside samples directory")

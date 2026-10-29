@@ -84,6 +84,25 @@ def test_invalid_labeling_fails_closed(tmp_path, update, match):
         evaluate(truth=path)
 
 
+@pytest.mark.parametrize("unsafe", [
+    "/etc/passwd",                    # POSIX root, even on Windows
+    "//server/share/some.log",        # POSIX and UNC-like root
+    r"C:\Windows\win.ini",           # Windows drive root
+    "C:/Windows/win.ini",             # Windows drive with forward slashes
+    r"C:Windows\win.ini",           # Windows drive-relative path
+    r"\\server\share\some.log",   # Windows UNC
+    r"\Windows\win.ini",             # Windows root-relative path
+    "../outside.log",                # POSIX parent traversal
+    r"subdir\..\outside.log",       # Windows parent traversal
+    "subdir/../../outside.log",     # Nested parent traversal
+])
+def test_reject_paths_rooted_or_traversing_on_either_platform(tmp_path, unsafe):
+    """Reject hostile paths using either OS's syntax, even across platforms."""
+    path = _write_truth(tmp_path, lambda data: data["scenarios"][0].update(file=unsafe))
+    with pytest.raises(ValueError, match="relative to samples directory"):
+        evaluate(truth=path)
+
+
 def test_missing_truth(tmp_path):
     with pytest.raises(FileNotFoundError):
         evaluate(truth=tmp_path / "not-exist.json")
