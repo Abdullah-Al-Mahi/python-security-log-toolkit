@@ -18,6 +18,9 @@ from security_log_toolkit.detection import (
     load_normalized_events,
 )
 from security_log_toolkit.ingest import ingest_file
+from security_log_toolkit.reporting import (
+    build_export_artifacts, summarize_report, validate_investigation_report, write_export_bundle,
+)
 from security_log_toolkit.investigation import attach_timelines, investigate_with_timelines
 
 
@@ -152,6 +155,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("config/correlation_rules.yaml"),
         help="Path to correlation_rules.yaml",
     )
+    report = commands.add_parser("report", help="Show a readable investigation report summary.")
+    report.add_argument("--input", required=True, type=Path, help="Existing Phase 4/5/6 investigation JSON")
+
+    export = commands.add_parser("export", help="Export investigation JSON and/or CSV tables.")
+    export.add_argument("--input", required=True, type=Path, help="Existing incident investigation JSON")
+    export.add_argument("--output-dir", required=True, type=Path, help="New output folder for export artifacts")
+    export.add_argument("--format", choices=("csv", "json", "both"), default="both")
+    export.add_argument("--force", action="store_true", help="Replace only a previous toolkit export folder")
     return parser
 
 
@@ -175,15 +186,37 @@ def main(argv: list[str] | None = None) -> int:
         print("--------------------")
         print(f"Version: {__version__}")
         print("Installation: OK")
-        print("Current milestone: Phase 6")
+        print("Current milestone: Phase 7")
         print("Log parsing: Linux SSH and Windows XML available")
         print("Normalization: Available")
         print("Detection engine: 3 configurable rules available")
         print("Event correlation: Incident grouping available")
         print("Investigation timelines: Evidence-linked chronological timelines available")
         print("Raw-log workflow and configuration inspection: Available")
-        print("Reporting: Investigation JSON available; CSV exports planned Phase 7")
+        print("Reporting: CSV/JSON bundles and analyst summaries available")
         return 0
+
+    if args.command in ("report", "export"):
+        try:
+            # Reject oversized inputs rather than loading arbitrary huge reports.
+            if args.input.stat().st_size > 50 * 1024 * 1024:
+                raise ValueError("Investigation report exceeds 50 MiB input limit")
+            with args.input.open("r", encoding="utf-8-sig") as stream:
+                data = validate_investigation_report(json.load(stream))
+            if args.command == "report":
+                print(summarize_report(data))
+            else:
+                artifacts = build_export_artifacts(data, args.format)
+                paths = write_export_bundle(
+                    artifacts, args.output_dir, protected_paths=[args.input], force=args.force,
+                )
+                print(f"Exported {len(paths)} files to {args.output_dir} ({args.format}).")
+                for path in paths:
+                    print(f"  {path.name}")
+            return 0
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"security-log: error: {exc}", file=sys.stderr)
+            return 2
 
     if args.command == "parse":
         try:

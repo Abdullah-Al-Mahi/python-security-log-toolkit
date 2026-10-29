@@ -5,7 +5,7 @@ OpenSSH and Windows Security XML authentication logs, finding suspicious login
 patterns, correlating related events into incidents, and generating
 **evidence-linked investigation timelines**.
 
-**Version:** 0.6.0 | **Current milestone:** Phase 6 — Advanced CLI & Configuration
+**Version:** 0.7.0 | **Current milestone:** Phase 7 — CSV/JSON Reporting & Exports
 
 > Phase 10 — a modern, local browser dashboard — is a required deliverable.
 > The CLI and future web UI will share the same Python services and data models.
@@ -22,6 +22,8 @@ patterns, correlating related events into incidents, and generating
 - **Phase 6:** `analyze` single-step raw-log workflow (no temporary normalized files)
 - **Phase 6:** `config show`, `config validate`, and `doctor` commands
 - **Phase 6:** output safeguards (`--force` required to replace existing reports)
+- **Phase 7:** `report` readable analyst summaries and `export` CSV/JSON investigation bundles
+- **Phase 7:** shared in-memory exporter with CSV spreadsheet-formula safeguards, checksums and safe overwrite rules
 - Framework-independent services for a future local Streamlit dashboard
 - Synthetic authentication datasets and a regression test suite
 
@@ -64,6 +66,40 @@ Running the command again with the same `--output` is blocked unless you add
 `--force`. Source logs and YAML configuration are protected **even with** `--force`.
 Use `--summary` without `--output` to see a brief textual summary; by default,
 without `--output`, the full report is printed as JSON.
+
+## Phase 7 demonstration — report summaries and exports
+
+Generate a complete investigation report if you have not done so already:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --output reports/phase7_analysis.json
+```
+
+Read a concise summary and export CSV + JSON:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/phase7_analysis.json
+.\.venv\Scripts\python.exe -m security_log_toolkit export --input reports/phase7_analysis.json --format both --output-dir reports/phase7_export
+```
+
+The export folder contains `summary.csv`, `incidents.csv`, `findings.csv`,
+`evidence.csv`, `timelines.csv`, `investigation.json`, and `export_manifest.json`.
+These tables are linked by stable incident, finding, and evidence identifiers.
+The manifest contains per-file SHA-256 hashes (integrity checks, **not signatures**).
+
+CSV data uses UTF-8 BOM for Windows Excel and prefixes cells beginning with
+spreadsheet formula syntax to reduce CSV injection risk. The original JSON retains
+its original values. Existing destination directories are protected unless you
+explicitly use `--force`, and even then only earlier toolkit-export directories
+without unexpected files can be replaced. Never export or commit sensitive real
+logs without authorization and redaction.
+
+You can export from **Phase 4 incident**, **Phase 5 timeline**, and **Phase 6/7
+full investigation** reports. A Phase 4 report has header-only `timelines.csv`.
+A normalized-only Phase 2 JSON file or standalone Phase 3 detection report is
+not an investigation report and cannot be exported by this command.
+
+See [`docs/REPORTING_GUIDE.md`](docs/REPORTING_GUIDE.md) for the reporting API.
 
 ## Configuration inspection and environment check
 

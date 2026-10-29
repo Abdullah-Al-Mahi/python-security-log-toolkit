@@ -12,8 +12,8 @@ subscriptions, or public deployment are needed.
 | 3 | YAML-based authentication detections | Complete | `detect_events()` and validated rules |
 | 4 | Event correlation | Complete | `investigate()` and incident records |
 | 5 | Evidence-linked investigation timelines | Complete | `attach_timelines()`, `investigate_with_timelines()` |
-| 6 | Advanced CLI & configuration | **Current** | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
-| 7 | CSV/JSON reporting and exports | Planned | Shared export adapters for CLI and browser downloads |
+| 6 | Advanced CLI & configuration | Complete | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
+| 7 | CSV/JSON reporting and exports | **Current** | Shared export adapters for CLI and browser downloads |
 | 8 | Comprehensive security/scale/edge-case validation | Planned | Input-hardening and stable service contracts |
 | 9 | GitHub portfolio, docs and demo scenarios | Planned | Reproducible offline demonstrations |
 | 10 | Modern local web dashboard | **Required** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
@@ -62,3 +62,15 @@ private local use requires no external hosting.
 - Linux OpenSSH syslog requires user-supplied year and UTC offset; Windows events
   are XML 4624/4625 exports, not binary `.evtx`.
 - Raw logs can contain personal data; do not upload private logs to public services.
+
+## Phase 7 reporting contract
+
+`security_log_toolkit.reporting.build_report_tables(report)` returns Python
+row lists suitable for charts, tables and filters. `build_export_artifacts(report,
+fmt)` returns deterministic in-memory bytes for CSV/JSON downloads, and
+`write_export_bundle()` writes them safely for the CLI. A Streamlit dashboard
+will call these services directly — no backend HTTP service is necessary.
+
+CSV sheets share `incident_id`, `finding_id`, and `evidence_id` references;
+timeline rows show linked evidence, **not complete security event history**.
+`export_manifest.json` includes SHA-256 digests for file integrity checking.

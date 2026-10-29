@@ -103,3 +103,22 @@ Rules detect patterns **for investigation**, not confirmed intrusions. A timelin
 records only evidence linked to detection findings, rather than all system activity.
 Do not upload real authentication logs, personal data, or security incidents to
 public repositories or third-party services.
+
+
+## Phase 7 — Analyst-friendly summaries and exports
+
+From the project root, first generate an investigation JSON via `analyze` or use
+an existing Phase 4–6 incident/timeline report.
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/phase6_analysis.json
+.\.venv\Scripts\python.exe -m security_log_toolkit export --input reports/phase6_analysis.json --output-dir reports/phase7_export --format both
+```
+
+`--format csv` writes the five CSV tables and a manifest; `--format json`
+writes a full investigation JSON and a manifest. `--format both` writes seven
+files total. Re-running with the same destination errors unless you specify
+`--force`. `--force` never deletes an arbitrary folder, a directory containing
+unexpected files, or the input investigation report.
+
+See `docs/REPORTING_GUIDE.md` for exact columns and usage from Python code.

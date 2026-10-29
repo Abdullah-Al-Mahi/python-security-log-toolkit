@@ -1,0 +1,1817 @@
+{
+  "tool_version": "0.6.0",
+  "input_files": [
+    "samples/linux/attack_auth.log",
+    "samples/windows/attack_security.xml"
+  ],
+  "detection_rules_file": "config/detection_rules.yaml",
+  "correlation_rules_file": "config/correlation_rules.yaml",
+  "summary": {
+    "events_analyzed": 29,
+    "duplicate_events_skipped": 0,
+    "findings_analyzed": 6,
+    "total_incidents": 4,
+    "correlated_incidents": 2,
+    "single_finding_incidents": 2,
+    "unique_evidence_events": 22,
+    "by_severity": {
+      "critical": 2,
+      "high": 2,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  "incidents": [
+    {
+      "incident_id": "I-e29c1e12b025263d",
+      "classification": "correlated",
+      "severity": "critical",
+      "platform": "linux",
+      "hostname": "lab-linux",
+      "source_ip": "198.51.100.77",
+      "first_seen": "2026-10-28T18:00:00Z",
+      "last_seen": "2026-10-28T18:00:55Z",
+      "finding_count": 2,
+      "finding_ids": [
+        "F-4f9be97b8e86b9d7",
+        "F-6359760e73ee0820"
+      ],
+      "rule_ids": [
+        "brute_force",
+        "success_after_failures"
+      ],
+      "affected_accounts": [
+        "alice"
+      ],
+      "unique_evidence_events": 6,
+      "evidence": [
+        {
+          "evidence_id": "E-88450c956de3740c",
+          "timestamp": "2026-10-28T18:00:00Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51001,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 1,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-4f9be97b8e86b9d7",
+            "F-6359760e73ee0820"
+          ]
+        },
+        {
+          "evidence_id": "E-5d22e1eb7e2772b8",
+          "timestamp": "2026-10-28T18:00:10Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51002,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 2,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-4f9be97b8e86b9d7",
+            "F-6359760e73ee0820"
+          ]
+        },
+        {
+          "evidence_id": "E-c5b4ff45650c5e3a",
+          "timestamp": "2026-10-28T18:00:20Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51003,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 3,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-4f9be97b8e86b9d7",
+            "F-6359760e73ee0820"
+          ]
+        },
+        {
+          "evidence_id": "E-8355367874660664",
+          "timestamp": "2026-10-28T18:00:30Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51004,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 4,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-4f9be97b8e86b9d7",
+            "F-6359760e73ee0820"
+          ]
+        },
+        {
+          "evidence_id": "E-791824f384d1c1fd",
+          "timestamp": "2026-10-28T18:00:40Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51005,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 5,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-4f9be97b8e86b9d7",
+            "F-6359760e73ee0820"
+          ]
+        },
+        {
+          "evidence_id": "E-aea9fcf593d3281a",
+          "timestamp": "2026-10-28T18:00:55Z",
+          "platform": "linux",
+          "event_type": "login_success",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "source_port": 51006,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 6,
+          "details": {
+            "invalid_user": "false"
+          },
+          "linked_finding_ids": [
+            "F-6359760e73ee0820"
+          ]
+        }
+      ],
+      "timeline": {
+        "incident_id": "I-e29c1e12b025263d",
+        "scope": "linked_detection_evidence_only",
+        "first_seen": "2026-10-28T18:00:00Z",
+        "last_seen": "2026-10-28T18:00:55Z",
+        "duration_seconds": 55.0,
+        "event_count": 6,
+        "failed_logins": 5,
+        "successful_logins": 1,
+        "affected_accounts": [
+          "alice"
+        ],
+        "observed_pattern": "failure_then_success_same_account",
+        "analyst_summary": "Failed authentications followed by a successful authentication for the same account were observed in linked evidence. This is not proof of compromise.",
+        "recommended_checks": [
+          "Confirm whether the authentication activity was expected and authorized.",
+          "Compare source IP, affected accounts, and timestamps against other authorized records.",
+          "Verify successful sessions and review subsequent host activity using other logs."
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "evidence_id": "E-88450c956de3740c",
+            "timestamp": "2026-10-28T18:00:00Z",
+            "seconds_from_start": 0.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 1,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-4f9be97b8e86b9d7",
+              "F-6359760e73ee0820"
+            ]
+          },
+          {
+            "sequence": 2,
+            "evidence_id": "E-5d22e1eb7e2772b8",
+            "timestamp": "2026-10-28T18:00:10Z",
+            "seconds_from_start": 10.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 2,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-4f9be97b8e86b9d7",
+              "F-6359760e73ee0820"
+            ]
+          },
+          {
+            "sequence": 3,
+            "evidence_id": "E-c5b4ff45650c5e3a",
+            "timestamp": "2026-10-28T18:00:20Z",
+            "seconds_from_start": 20.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 3,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-4f9be97b8e86b9d7",
+              "F-6359760e73ee0820"
+            ]
+          },
+          {
+            "sequence": 4,
+            "evidence_id": "E-8355367874660664",
+            "timestamp": "2026-10-28T18:00:30Z",
+            "seconds_from_start": 30.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 4,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-4f9be97b8e86b9d7",
+              "F-6359760e73ee0820"
+            ]
+          },
+          {
+            "sequence": 5,
+            "evidence_id": "E-791824f384d1c1fd",
+            "timestamp": "2026-10-28T18:00:40Z",
+            "seconds_from_start": 40.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 5,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-4f9be97b8e86b9d7",
+              "F-6359760e73ee0820"
+            ]
+          },
+          {
+            "sequence": 6,
+            "evidence_id": "E-aea9fcf593d3281a",
+            "timestamp": "2026-10-28T18:00:55Z",
+            "seconds_from_start": 55.0,
+            "event_type": "login_success",
+            "stage": "authentication_success",
+            "label": "Successful authentication observed",
+            "account": "alice",
+            "username": "alice",
+            "source_ip": "198.51.100.77",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 6,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-6359760e73ee0820"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "incident_id": "I-b927faf48c388fe3",
+      "classification": "single_finding",
+      "severity": "high",
+      "platform": "linux",
+      "hostname": "lab-linux",
+      "source_ip": "203.0.113.88",
+      "first_seen": "2026-10-28T18:02:00Z",
+      "last_seen": "2026-10-28T18:02:40Z",
+      "finding_count": 1,
+      "finding_ids": [
+        "F-64071217f26828c6"
+      ],
+      "rule_ids": [
+        "password_spray"
+      ],
+      "affected_accounts": [
+        "admin",
+        "auditor",
+        "deploy",
+        "finance",
+        "helpdesk"
+      ],
+      "unique_evidence_events": 5,
+      "evidence": [
+        {
+          "evidence_id": "E-499b336a513d54c4",
+          "timestamp": "2026-10-28T18:02:00Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "admin",
+          "source_ip": "203.0.113.88",
+          "source_port": 52001,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 7,
+          "details": {
+            "invalid_user": "true"
+          },
+          "linked_finding_ids": [
+            "F-64071217f26828c6"
+          ]
+        },
+        {
+          "evidence_id": "E-5da1af16fae30de2",
+          "timestamp": "2026-10-28T18:02:10Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "finance",
+          "source_ip": "203.0.113.88",
+          "source_port": 52002,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 8,
+          "details": {
+            "invalid_user": "true"
+          },
+          "linked_finding_ids": [
+            "F-64071217f26828c6"
+          ]
+        },
+        {
+          "evidence_id": "E-11ef574c00f3ce1a",
+          "timestamp": "2026-10-28T18:02:20Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "helpdesk",
+          "source_ip": "203.0.113.88",
+          "source_port": 52003,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 9,
+          "details": {
+            "invalid_user": "true"
+          },
+          "linked_finding_ids": [
+            "F-64071217f26828c6"
+          ]
+        },
+        {
+          "evidence_id": "E-a0c9f6cc1df86fda",
+          "timestamp": "2026-10-28T18:02:30Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "deploy",
+          "source_ip": "203.0.113.88",
+          "source_port": 52004,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 10,
+          "details": {
+            "invalid_user": "true"
+          },
+          "linked_finding_ids": [
+            "F-64071217f26828c6"
+          ]
+        },
+        {
+          "evidence_id": "E-2358bb515003684f",
+          "timestamp": "2026-10-28T18:02:40Z",
+          "platform": "linux",
+          "event_type": "login_failure",
+          "hostname": "lab-linux",
+          "username": "auditor",
+          "source_ip": "203.0.113.88",
+          "source_port": 52005,
+          "authentication_method": "password",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 11,
+          "details": {
+            "invalid_user": "true"
+          },
+          "linked_finding_ids": [
+            "F-64071217f26828c6"
+          ]
+        }
+      ],
+      "timeline": {
+        "incident_id": "I-b927faf48c388fe3",
+        "scope": "linked_detection_evidence_only",
+        "first_seen": "2026-10-28T18:02:00Z",
+        "last_seen": "2026-10-28T18:02:40Z",
+        "duration_seconds": 40.0,
+        "event_count": 5,
+        "failed_logins": 5,
+        "successful_logins": 0,
+        "affected_accounts": [
+          "admin",
+          "auditor",
+          "deploy",
+          "finance",
+          "helpdesk"
+        ],
+        "observed_pattern": "failures_across_multiple_accounts",
+        "analyst_summary": "Failed authentications affecting multiple accounts were observed. This is not proof of compromise.",
+        "recommended_checks": [
+          "Confirm whether the authentication activity was expected and authorized.",
+          "Compare source IP, affected accounts, and timestamps against other authorized records.",
+          "Check whether other telemetry shows later successful authentication attempts."
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "evidence_id": "E-499b336a513d54c4",
+            "timestamp": "2026-10-28T18:02:00Z",
+            "seconds_from_start": 0.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "admin",
+            "username": "admin",
+            "source_ip": "203.0.113.88",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 7,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-64071217f26828c6"
+            ]
+          },
+          {
+            "sequence": 2,
+            "evidence_id": "E-5da1af16fae30de2",
+            "timestamp": "2026-10-28T18:02:10Z",
+            "seconds_from_start": 10.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "finance",
+            "username": "finance",
+            "source_ip": "203.0.113.88",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 8,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-64071217f26828c6"
+            ]
+          },
+          {
+            "sequence": 3,
+            "evidence_id": "E-11ef574c00f3ce1a",
+            "timestamp": "2026-10-28T18:02:20Z",
+            "seconds_from_start": 20.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "helpdesk",
+            "username": "helpdesk",
+            "source_ip": "203.0.113.88",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 9,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-64071217f26828c6"
+            ]
+          },
+          {
+            "sequence": 4,
+            "evidence_id": "E-a0c9f6cc1df86fda",
+            "timestamp": "2026-10-28T18:02:30Z",
+            "seconds_from_start": 30.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "deploy",
+            "username": "deploy",
+            "source_ip": "203.0.113.88",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 10,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-64071217f26828c6"
+            ]
+          },
+          {
+            "sequence": 5,
+            "evidence_id": "E-2358bb515003684f",
+            "timestamp": "2026-10-28T18:02:40Z",
+            "seconds_from_start": 40.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "auditor",
+            "username": "auditor",
+            "source_ip": "203.0.113.88",
+            "hostname": "lab-linux",
+            "platform": "linux",
+            "authentication_method": "password",
+            "event_id": "sshd",
+            "source": {
+              "file": "samples/linux/attack_auth.log",
+              "line": 11,
+              "record_id": null
+            },
+            "linked_finding_ids": [
+              "F-64071217f26828c6"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "incident_id": "I-a02c50851ec770b7",
+      "classification": "correlated",
+      "severity": "critical",
+      "platform": "windows",
+      "hostname": "LAB-WIN11",
+      "source_ip": "198.51.100.60",
+      "first_seen": "2026-10-28T18:05:00Z",
+      "last_seen": "2026-10-28T18:05:55Z",
+      "finding_count": 2,
+      "finding_ids": [
+        "F-7e6eaa4d4eb350d3",
+        "F-ebcc687d8a042a60"
+      ],
+      "rule_ids": [
+        "brute_force",
+        "success_after_failures"
+      ],
+      "affected_accounts": [
+        "lab\\analyst"
+      ],
+      "unique_evidence_events": 6,
+      "evidence": [
+        {
+          "evidence_id": "E-ddfe95fb22cc6a24",
+          "timestamp": "2026-10-28T18:05:00Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55100,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4100",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-7e6eaa4d4eb350d3",
+            "F-ebcc687d8a042a60"
+          ]
+        },
+        {
+          "evidence_id": "E-28b5707401ad5066",
+          "timestamp": "2026-10-28T18:05:10Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55101,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4101",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-7e6eaa4d4eb350d3",
+            "F-ebcc687d8a042a60"
+          ]
+        },
+        {
+          "evidence_id": "E-1b5af1c26a87baed",
+          "timestamp": "2026-10-28T18:05:20Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55102,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4102",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-7e6eaa4d4eb350d3",
+            "F-ebcc687d8a042a60"
+          ]
+        },
+        {
+          "evidence_id": "E-1ae32c444b0541a9",
+          "timestamp": "2026-10-28T18:05:30Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55103,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4103",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-7e6eaa4d4eb350d3",
+            "F-ebcc687d8a042a60"
+          ]
+        },
+        {
+          "evidence_id": "E-545efbc42574069a",
+          "timestamp": "2026-10-28T18:05:40Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55104,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4104",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-7e6eaa4d4eb350d3",
+            "F-ebcc687d8a042a60"
+          ]
+        },
+        {
+          "evidence_id": "E-4d5b7d6269c76af4",
+          "timestamp": "2026-10-28T18:05:55Z",
+          "platform": "windows",
+          "event_type": "login_success",
+          "hostname": "LAB-WIN11",
+          "username": "analyst",
+          "source_ip": "198.51.100.60",
+          "source_port": 55106,
+          "authentication_method": "NTLM",
+          "event_id": "4624",
+          "record_id": "4110",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "",
+            "sub_status": "",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-ebcc687d8a042a60"
+          ]
+        }
+      ],
+      "timeline": {
+        "incident_id": "I-a02c50851ec770b7",
+        "scope": "linked_detection_evidence_only",
+        "first_seen": "2026-10-28T18:05:00Z",
+        "last_seen": "2026-10-28T18:05:55Z",
+        "duration_seconds": 55.0,
+        "event_count": 6,
+        "failed_logins": 5,
+        "successful_logins": 1,
+        "affected_accounts": [
+          "lab\\analyst"
+        ],
+        "observed_pattern": "failure_then_success_same_account",
+        "analyst_summary": "Failed authentications followed by a successful authentication for the same account were observed in linked evidence. This is not proof of compromise.",
+        "recommended_checks": [
+          "Confirm whether the authentication activity was expected and authorized.",
+          "Compare source IP, affected accounts, and timestamps against other authorized records.",
+          "Verify successful sessions and review subsequent host activity using other logs."
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "evidence_id": "E-ddfe95fb22cc6a24",
+            "timestamp": "2026-10-28T18:05:00Z",
+            "seconds_from_start": 0.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\analyst",
+            "username": "Analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4100"
+            },
+            "linked_finding_ids": [
+              "F-7e6eaa4d4eb350d3",
+              "F-ebcc687d8a042a60"
+            ]
+          },
+          {
+            "sequence": 2,
+            "evidence_id": "E-28b5707401ad5066",
+            "timestamp": "2026-10-28T18:05:10Z",
+            "seconds_from_start": 10.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\analyst",
+            "username": "Analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4101"
+            },
+            "linked_finding_ids": [
+              "F-7e6eaa4d4eb350d3",
+              "F-ebcc687d8a042a60"
+            ]
+          },
+          {
+            "sequence": 3,
+            "evidence_id": "E-1b5af1c26a87baed",
+            "timestamp": "2026-10-28T18:05:20Z",
+            "seconds_from_start": 20.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\analyst",
+            "username": "Analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4102"
+            },
+            "linked_finding_ids": [
+              "F-7e6eaa4d4eb350d3",
+              "F-ebcc687d8a042a60"
+            ]
+          },
+          {
+            "sequence": 4,
+            "evidence_id": "E-1ae32c444b0541a9",
+            "timestamp": "2026-10-28T18:05:30Z",
+            "seconds_from_start": 30.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\analyst",
+            "username": "Analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4103"
+            },
+            "linked_finding_ids": [
+              "F-7e6eaa4d4eb350d3",
+              "F-ebcc687d8a042a60"
+            ]
+          },
+          {
+            "sequence": 5,
+            "evidence_id": "E-545efbc42574069a",
+            "timestamp": "2026-10-28T18:05:40Z",
+            "seconds_from_start": 40.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\analyst",
+            "username": "Analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4104"
+            },
+            "linked_finding_ids": [
+              "F-7e6eaa4d4eb350d3",
+              "F-ebcc687d8a042a60"
+            ]
+          },
+          {
+            "sequence": 6,
+            "evidence_id": "E-4d5b7d6269c76af4",
+            "timestamp": "2026-10-28T18:05:55Z",
+            "seconds_from_start": 55.0,
+            "event_type": "login_success",
+            "stage": "authentication_success",
+            "label": "Successful authentication observed",
+            "account": "lab\\analyst",
+            "username": "analyst",
+            "source_ip": "198.51.100.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4624",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4110"
+            },
+            "linked_finding_ids": [
+              "F-ebcc687d8a042a60"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "incident_id": "I-af75ff1f1759f55a",
+      "classification": "single_finding",
+      "severity": "high",
+      "platform": "windows",
+      "hostname": "LAB-WIN11",
+      "source_ip": "203.0.113.60",
+      "first_seen": "2026-10-28T18:07:00Z",
+      "last_seen": "2026-10-28T18:07:40Z",
+      "finding_count": 1,
+      "finding_ids": [
+        "F-66496ca3bf093633"
+      ],
+      "rule_ids": [
+        "password_spray"
+      ],
+      "affected_accounts": [
+        "lab\\admin",
+        "lab\\auditor",
+        "lab\\deploy",
+        "lab\\finance",
+        "lab\\helpdesk"
+      ],
+      "unique_evidence_events": 5,
+      "evidence": [
+        {
+          "evidence_id": "E-35ad9009b8f47f3d",
+          "timestamp": "2026-10-28T18:07:00Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Admin",
+          "source_ip": "203.0.113.60",
+          "source_port": 56000,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4200",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-66496ca3bf093633"
+          ]
+        },
+        {
+          "evidence_id": "E-d0d8d1590723c8b3",
+          "timestamp": "2026-10-28T18:07:10Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Finance",
+          "source_ip": "203.0.113.60",
+          "source_port": 56001,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4201",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-66496ca3bf093633"
+          ]
+        },
+        {
+          "evidence_id": "E-2ba0550c36bffe65",
+          "timestamp": "2026-10-28T18:07:20Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "HelpDesk",
+          "source_ip": "203.0.113.60",
+          "source_port": 56002,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4202",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-66496ca3bf093633"
+          ]
+        },
+        {
+          "evidence_id": "E-d1989c1d359f20f0",
+          "timestamp": "2026-10-28T18:07:30Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Deploy",
+          "source_ip": "203.0.113.60",
+          "source_port": 56003,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4203",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-66496ca3bf093633"
+          ]
+        },
+        {
+          "evidence_id": "E-02b20cae48a075f4",
+          "timestamp": "2026-10-28T18:07:40Z",
+          "platform": "windows",
+          "event_type": "login_failure",
+          "hostname": "LAB-WIN11",
+          "username": "Auditor",
+          "source_ip": "203.0.113.60",
+          "source_port": 56004,
+          "authentication_method": "NTLM",
+          "event_id": "4625",
+          "record_id": "4204",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null,
+          "details": {
+            "domain": "LAB",
+            "logon_type": "3",
+            "status": "0xC000006D",
+            "sub_status": "0xC000006A",
+            "workstation": ""
+          },
+          "linked_finding_ids": [
+            "F-66496ca3bf093633"
+          ]
+        }
+      ],
+      "timeline": {
+        "incident_id": "I-af75ff1f1759f55a",
+        "scope": "linked_detection_evidence_only",
+        "first_seen": "2026-10-28T18:07:00Z",
+        "last_seen": "2026-10-28T18:07:40Z",
+        "duration_seconds": 40.0,
+        "event_count": 5,
+        "failed_logins": 5,
+        "successful_logins": 0,
+        "affected_accounts": [
+          "lab\\admin",
+          "lab\\auditor",
+          "lab\\deploy",
+          "lab\\finance",
+          "lab\\helpdesk"
+        ],
+        "observed_pattern": "failures_across_multiple_accounts",
+        "analyst_summary": "Failed authentications affecting multiple accounts were observed. This is not proof of compromise.",
+        "recommended_checks": [
+          "Confirm whether the authentication activity was expected and authorized.",
+          "Compare source IP, affected accounts, and timestamps against other authorized records.",
+          "Check whether other telemetry shows later successful authentication attempts."
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "evidence_id": "E-35ad9009b8f47f3d",
+            "timestamp": "2026-10-28T18:07:00Z",
+            "seconds_from_start": 0.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\admin",
+            "username": "Admin",
+            "source_ip": "203.0.113.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4200"
+            },
+            "linked_finding_ids": [
+              "F-66496ca3bf093633"
+            ]
+          },
+          {
+            "sequence": 2,
+            "evidence_id": "E-d0d8d1590723c8b3",
+            "timestamp": "2026-10-28T18:07:10Z",
+            "seconds_from_start": 10.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\finance",
+            "username": "Finance",
+            "source_ip": "203.0.113.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4201"
+            },
+            "linked_finding_ids": [
+              "F-66496ca3bf093633"
+            ]
+          },
+          {
+            "sequence": 3,
+            "evidence_id": "E-2ba0550c36bffe65",
+            "timestamp": "2026-10-28T18:07:20Z",
+            "seconds_from_start": 20.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\helpdesk",
+            "username": "HelpDesk",
+            "source_ip": "203.0.113.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4202"
+            },
+            "linked_finding_ids": [
+              "F-66496ca3bf093633"
+            ]
+          },
+          {
+            "sequence": 4,
+            "evidence_id": "E-d1989c1d359f20f0",
+            "timestamp": "2026-10-28T18:07:30Z",
+            "seconds_from_start": 30.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\deploy",
+            "username": "Deploy",
+            "source_ip": "203.0.113.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4203"
+            },
+            "linked_finding_ids": [
+              "F-66496ca3bf093633"
+            ]
+          },
+          {
+            "sequence": 5,
+            "evidence_id": "E-02b20cae48a075f4",
+            "timestamp": "2026-10-28T18:07:40Z",
+            "seconds_from_start": 40.0,
+            "event_type": "login_failure",
+            "stage": "authentication_failure",
+            "label": "Failed authentication observed",
+            "account": "lab\\auditor",
+            "username": "Auditor",
+            "source_ip": "203.0.113.60",
+            "hostname": "LAB-WIN11",
+            "platform": "windows",
+            "authentication_method": "NTLM",
+            "event_id": "4625",
+            "source": {
+              "file": "samples/windows/attack_security.xml",
+              "line": null,
+              "record_id": "4204"
+            },
+            "linked_finding_ids": [
+              "F-66496ca3bf093633"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F-6359760e73ee0820",
+      "rule_id": "success_after_failures",
+      "title": "Successful login following repeated failures",
+      "severity": "critical",
+      "platform": "linux",
+      "hostname": "lab-linux",
+      "source_ip": "198.51.100.77",
+      "usernames": [
+        "alice"
+      ],
+      "first_seen": "2026-10-28T18:00:00Z",
+      "last_seen": "2026-10-28T18:00:55Z",
+      "event_count": 6,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:00:00Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 1
+        },
+        {
+          "timestamp": "2026-10-28T18:00:10Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 2
+        },
+        {
+          "timestamp": "2026-10-28T18:00:20Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 3
+        },
+        {
+          "timestamp": "2026-10-28T18:00:30Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 4
+        },
+        {
+          "timestamp": "2026-10-28T18:00:40Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 5
+        },
+        {
+          "timestamp": "2026-10-28T18:00:55Z",
+          "event_type": "login_success",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 6
+        }
+      ]
+    },
+    {
+      "finding_id": "F-4f9be97b8e86b9d7",
+      "rule_id": "brute_force",
+      "title": "Possible brute-force authentication",
+      "severity": "high",
+      "platform": "linux",
+      "hostname": "lab-linux",
+      "source_ip": "198.51.100.77",
+      "usernames": [
+        "alice"
+      ],
+      "first_seen": "2026-10-28T18:00:00Z",
+      "last_seen": "2026-10-28T18:00:40Z",
+      "event_count": 5,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:00:00Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 1
+        },
+        {
+          "timestamp": "2026-10-28T18:00:10Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 2
+        },
+        {
+          "timestamp": "2026-10-28T18:00:20Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 3
+        },
+        {
+          "timestamp": "2026-10-28T18:00:30Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 4
+        },
+        {
+          "timestamp": "2026-10-28T18:00:40Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "alice",
+          "source_ip": "198.51.100.77",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 5
+        }
+      ]
+    },
+    {
+      "finding_id": "F-64071217f26828c6",
+      "rule_id": "password_spray",
+      "title": "Possible password spraying",
+      "severity": "high",
+      "platform": "linux",
+      "hostname": "lab-linux",
+      "source_ip": "203.0.113.88",
+      "usernames": [
+        "admin",
+        "auditor",
+        "deploy",
+        "finance",
+        "helpdesk"
+      ],
+      "first_seen": "2026-10-28T18:02:00Z",
+      "last_seen": "2026-10-28T18:02:40Z",
+      "event_count": 5,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:02:00Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "admin",
+          "source_ip": "203.0.113.88",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 7
+        },
+        {
+          "timestamp": "2026-10-28T18:02:10Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "finance",
+          "source_ip": "203.0.113.88",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 8
+        },
+        {
+          "timestamp": "2026-10-28T18:02:20Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "helpdesk",
+          "source_ip": "203.0.113.88",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 9
+        },
+        {
+          "timestamp": "2026-10-28T18:02:30Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "deploy",
+          "source_ip": "203.0.113.88",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 10
+        },
+        {
+          "timestamp": "2026-10-28T18:02:40Z",
+          "event_type": "login_failure",
+          "platform": "linux",
+          "hostname": "lab-linux",
+          "username": "auditor",
+          "source_ip": "203.0.113.88",
+          "event_id": "sshd",
+          "record_id": null,
+          "source_file": "samples/linux/attack_auth.log",
+          "source_line": 11
+        }
+      ]
+    },
+    {
+      "finding_id": "F-ebcc687d8a042a60",
+      "rule_id": "success_after_failures",
+      "title": "Successful login following repeated failures",
+      "severity": "critical",
+      "platform": "windows",
+      "hostname": "LAB-WIN11",
+      "source_ip": "198.51.100.60",
+      "usernames": [
+        "lab\\analyst"
+      ],
+      "first_seen": "2026-10-28T18:05:00Z",
+      "last_seen": "2026-10-28T18:05:55Z",
+      "event_count": 6,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:05:00Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4100",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:10Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4101",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:20Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4102",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:30Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4103",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:40Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4104",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:55Z",
+          "event_type": "login_success",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4624",
+          "record_id": "4110",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        }
+      ]
+    },
+    {
+      "finding_id": "F-7e6eaa4d4eb350d3",
+      "rule_id": "brute_force",
+      "title": "Possible brute-force authentication",
+      "severity": "high",
+      "platform": "windows",
+      "hostname": "LAB-WIN11",
+      "source_ip": "198.51.100.60",
+      "usernames": [
+        "lab\\analyst"
+      ],
+      "first_seen": "2026-10-28T18:05:00Z",
+      "last_seen": "2026-10-28T18:05:40Z",
+      "event_count": 5,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:05:00Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4100",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:10Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4101",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:20Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4102",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:30Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4103",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:05:40Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Analyst",
+          "source_ip": "198.51.100.60",
+          "event_id": "4625",
+          "record_id": "4104",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        }
+      ]
+    },
+    {
+      "finding_id": "F-66496ca3bf093633",
+      "rule_id": "password_spray",
+      "title": "Possible password spraying",
+      "severity": "high",
+      "platform": "windows",
+      "hostname": "LAB-WIN11",
+      "source_ip": "203.0.113.60",
+      "usernames": [
+        "lab\\admin",
+        "lab\\auditor",
+        "lab\\deploy",
+        "lab\\finance",
+        "lab\\helpdesk"
+      ],
+      "first_seen": "2026-10-28T18:07:00Z",
+      "last_seen": "2026-10-28T18:07:40Z",
+      "event_count": 5,
+      "evidence": [
+        {
+          "timestamp": "2026-10-28T18:07:00Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Admin",
+          "source_ip": "203.0.113.60",
+          "event_id": "4625",
+          "record_id": "4200",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:07:10Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Finance",
+          "source_ip": "203.0.113.60",
+          "event_id": "4625",
+          "record_id": "4201",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:07:20Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "HelpDesk",
+          "source_ip": "203.0.113.60",
+          "event_id": "4625",
+          "record_id": "4202",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:07:30Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Deploy",
+          "source_ip": "203.0.113.60",
+          "event_id": "4625",
+          "record_id": "4203",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        },
+        {
+          "timestamp": "2026-10-28T18:07:40Z",
+          "event_type": "login_failure",
+          "platform": "windows",
+          "hostname": "LAB-WIN11",
+          "username": "Auditor",
+          "source_ip": "203.0.113.60",
+          "event_id": "4625",
+          "record_id": "4204",
+          "source_file": "samples/windows/attack_security.xml",
+          "source_line": null
+        }
+      ]
+    }
+  ],
+  "timeline_generator_version": "0.6.0",
+  "timeline_summary": {
+    "total_timelines": 4,
+    "total_timeline_entries": 22,
+    "incidents_with_observed_successes": 2,
+    "evidence_scope": "Linked evidence only; not complete security log history."
+  },
+  "workflow": "raw_log_analysis",
+  "raw_log_summary": {
+    "source_files_processed": 2,
+    "duplicate_source_files_skipped": 0,
+    "records_examined": 31,
+    "normalized_before_deduplication": 29,
+    "normalized_events": 29,
+    "duplicate_events_skipped": 0,
+    "unsupported_records_skipped": 2
+  },
+  "raw_log_sources": [
+    {
+      "source_format": "linux",
+      "input_file": "samples/linux/attack_auth.log",
+      "summary": {
+        "records_examined": 16,
+        "normalized": 15,
+        "skipped": 1,
+        "login_success": 3,
+        "login_failure": 12
+      }
+    },
+    {
+      "source_format": "windows",
+      "input_file": "samples/windows/attack_security.xml",
+      "summary": {
+        "records_examined": 15,
+        "normalized": 14,
+        "skipped": 1,
+        "login_success": 3,
+        "login_failure": 11
+      }
+    }
+  ]
+}
