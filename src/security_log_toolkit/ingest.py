@@ -6,6 +6,7 @@ from pathlib import Path
 from security_log_toolkit.events import SecurityEvent
 from security_log_toolkit.parsers.linux import parse_linux_file
 from security_log_toolkit.parsers.windows import parse_windows_file
+from security_log_toolkit.security_limits import MAX_RAW_LOG_BYTES, require_bounded_file
 
 
 @dataclass(slots=True)
@@ -39,8 +40,7 @@ def ingest_file(
     utc_offset: str = "+00:00",
 ) -> ParseResult:
     """Read an offline file and normalize recognized authentication records."""
-    if not path.is_file():
-        raise FileNotFoundError(f"Input file does not exist: {path}")
+    require_bounded_file(path, MAX_RAW_LOG_BYTES, "Raw log")
     if source_format == "linux":
         if year is None:
             raise ValueError("Linux syslog requires --year because its timestamps omit the year")

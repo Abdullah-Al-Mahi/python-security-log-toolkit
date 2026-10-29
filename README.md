@@ -5,7 +5,7 @@ OpenSSH and Windows Security XML authentication logs, finding suspicious login
 patterns, correlating related events into incidents, and generating
 **evidence-linked investigation timelines**.
 
-**Version:** 0.7.0 | **Current milestone:** Phase 7 — CSV/JSON Reporting & Exports
+**Version:** 0.8.0 | **Current milestone:** Phase 8 — Comprehensive Security Testing & Validation
 
 > Phase 10 — a modern, local browser dashboard — is a required deliverable.
 > The CLI and future web UI will share the same Python services and data models.
@@ -66,6 +66,38 @@ Running the command again with the same `--output` is blocked unless you add
 `--force`. Source logs and YAML configuration are protected **even with** `--force`.
 Use `--summary` without `--output` to see a brief textual summary; by default,
 without `--output`, the full report is printed as JSON.
+
+
+## Phase 8 — Security hardening and validation (current)
+
+The shared backend now caps raw logs at **16 MiB per input**, normalized JSON
+at **32 MiB per file**, incident JSON timeline imports at **50 MiB**, and
+individual Linux syslog lines at **65,536 characters**. Windows XML parsing
+rejects DOCTYPE/entity declarations before parsing; valid UTF-8/UTF-16 XML
+continues to work. These limits mitigate accidental oversized inputs; they are
+not a guarantee against every denial-of-service or XML/parser attack.
+
+Evaluate **manually labeled synthetic scenarios**, not production accuracy:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase8_validation.json
+```
+
+Expected on the bundled fixed scenarios: 4 cases, 41 events, **6 TP, 0 FP,
+0 FN**, and synthetic-scenario **precision/recall/F1 = 1.0**. This is *not* an
+estimate of real-world detection accuracy or false-positive rate.
+
+Measure bounded **in-memory detection + correlation + serialization** throughput:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase8_benchmark.json
+```
+
+Latency/throughput are machine-dependent and exclude parsing and disk I/O.
+Full limitations, adversarial fixtures and test instructions appear in
+[`docs/SECURITY_VALIDATION_GUIDE.md`](docs/SECURITY_VALIDATION_GUIDE.md).
+The `quality` package offers Python services reusable by the required Phase 10
+private local web dashboard. No subscriptions or public hosting required.
 
 ## Phase 7 demonstration — report summaries and exports
 

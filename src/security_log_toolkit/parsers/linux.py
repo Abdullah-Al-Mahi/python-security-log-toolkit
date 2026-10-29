@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from security_log_toolkit.events import SecurityEvent, normalize_ip
+from security_log_toolkit.security_limits import MAX_LINUX_LINE_CHARS
 
 _SYSLOG = re.compile(
     r"^(?P<month>[A-Z][a-z]{2})\s+(?P<day>\d{1,2})\s+"
@@ -51,6 +52,8 @@ def parse_linux_file(
     records = 0
     with path.open("r", encoding="utf-8-sig") as stream:
         for line_number, line in enumerate(stream, start=1):
+            if len(line) > MAX_LINUX_LINE_CHARS:
+                raise ValueError(f"{path}:{line_number}: syslog line exceeds {MAX_LINUX_LINE_CHARS} characters")
             line = line.rstrip("\r\n")
             if not line.strip():
                 continue

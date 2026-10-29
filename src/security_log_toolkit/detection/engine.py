@@ -11,6 +11,7 @@ from typing import Iterable
 from security_log_toolkit import __version__
 from security_log_toolkit.detection.config import DetectionConfig, RuleSettings
 from security_log_toolkit.events import SecurityEvent
+from security_log_toolkit.security_limits import MAX_NORMALIZED_JSON_BYTES, require_bounded_file
 
 
 RULE_TITLES = {
@@ -88,6 +89,7 @@ def load_normalized_events(paths: Iterable[Path]) -> tuple[list[SecurityEvent], 
     unique: set[str] = set()
     duplicates = 0
     for path in paths:
+        require_bounded_file(path, MAX_NORMALIZED_JSON_BYTES, "Normalized JSON")
         try:
             data = json.loads(path.read_text(encoding="utf-8-sig"))
         except json.JSONDecodeError as exc:

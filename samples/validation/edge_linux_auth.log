@@ -1,0 +1,9 @@
+Oct 29 00:00:00 test-ssh sshd[4001]: Failed password for analyst from 198.51.100.41 port 52001 ssh2
+Oct 29 00:00:10 test-ssh sshd[4002]: Failed password for analyst from 198.51.100.42 port 52002 ssh2
+Oct 29 00:00:20 test-ssh sshd[4003]: Failed password for analyst from 198.51.100.41 port 52003 ssh2
+Oct 29 00:00:30 test-ssh sshd[4004]: Failed password for analyst from 198.51.100.42 port 52004 ssh2
+Oct 29 00:00:40 test-ssh sshd[4005]: Failed password for analyst from 198.51.100.41 port 52005 ssh2
+Oct 29 00:00:50 test-ssh sshd[4006]: Failed password for analyst from 198.51.100.42 port 52006 ssh2
+Oct 29 00:01:00 test-ssh sshd[4007]: Accepted publickey for deploy from 2001:db8::9 port 52007 ssh2
+Oct 29 00:01:10 test-ssh sshd[4008]: Failed password for analyst from 198.51.100.41 port 52008 ssh2
+Oct 29 00:01:20 test-ssh sudo: analyst : TTY=pts/0 ; USER=root ; COMMAND=/usr/bin/id

@@ -18,6 +18,8 @@ from security_log_toolkit.detection import (
     load_normalized_events,
 )
 from security_log_toolkit.ingest import ingest_file
+from security_log_toolkit.quality import evaluate_scenarios, run_benchmark
+from security_log_toolkit.security_limits import MAX_INVESTIGATION_JSON_BYTES, require_bounded_file
 from security_log_toolkit.reporting import (
     build_export_artifacts, summarize_report, validate_investigation_report, write_export_bundle,
 )
@@ -163,6 +165,38 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--output-dir", required=True, type=Path, help="New output folder for export artifacts")
     export.add_argument("--format", choices=("csv", "json", "both"), default="both")
     export.add_argument("--force", action="store_true", help="Replace only a previous toolkit export folder")
+    validate = commands.add_parser(
+        "validate", help="Evaluate manually labeled synthetic detection scenarios."
+    )
+    validate.add_argument(
+        "--truth", type=Path, default=Path("samples/validation/ground_truth.json"),
+        help="Labeled scenario manifest JSON",
+    )
+    validate.add_argument(
+        "--samples-dir", type=Path, default=Path("samples"),
+        help="Permitted root for the synthetic source files",
+    )
+    validate.add_argument(
+        "--rules", type=Path, default=Path("config/detection_rules.yaml"),
+        help="Detection YAML settings",
+    )
+    validate.add_argument("--output", type=Path, help="Optional validation JSON destination")
+    validate.add_argument("--force", action="store_true", help="Replace an existing validation JSON report")
+
+    benchmark = commands.add_parser(
+        "benchmark", help="Measure bounded synthetic in-memory investigation throughput."
+    )
+    benchmark.add_argument("--events", type=int, default=1000, help="Synthetic events: 100 to 5000")
+    benchmark.add_argument("--runs", type=int, default=3, help="Timed repetitions: 2 to 10")
+    benchmark.add_argument(
+        "--rules", type=Path, default=Path("config/detection_rules.yaml")
+    )
+    benchmark.add_argument(
+        "--correlation-config", type=Path,
+        default=Path("config/correlation_rules.yaml"),
+    )
+    benchmark.add_argument("--output", type=Path, help="Optional benchmark JSON destination")
+    benchmark.add_argument("--force", action="store_true", help="Replace an existing benchmark report")
     return parser
 
 
@@ -186,7 +220,7 @@ def main(argv: list[str] | None = None) -> int:
         print("--------------------")
         print(f"Version: {__version__}")
         print("Installation: OK")
-        print("Current milestone: Phase 7")
+        print("Current milestone: Phase 8")
         print("Log parsing: Linux SSH and Windows XML available")
         print("Normalization: Available")
         print("Detection engine: 3 configurable rules available")
@@ -194,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Investigation timelines: Evidence-linked chronological timelines available")
         print("Raw-log workflow and configuration inspection: Available")
         print("Reporting: CSV/JSON bundles and analyst summaries available")
+        print("Security validation: Labeled synthetic scenarios and bounded benchmark available")
         return 0
 
     if args.command in ("report", "export"):
@@ -302,6 +337,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             _assert_safe_output(args.output, protected)
             if args.incident_report:
+                require_bounded_file(args.incident_report, MAX_INVESTIGATION_JSON_BYTES, "Incident report")
                 with args.incident_report.open("r", encoding="utf-8-sig") as stream:
                     original = json.load(stream)
                 data = attach_timelines(original)
@@ -323,6 +359,46 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(data, indent=2, ensure_ascii=False))
             return 0
         except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"security-log: error: {exc}", file=sys.stderr)
+            return 2
+
+    if args.command in ("validate", "benchmark"):
+        try:
+            protected = ([args.truth, args.rules] if args.command == "validate"
+                         else [args.rules, args.correlation_config])
+            _assert_safe_output(args.output, protected)
+            if args.output and args.output.exists() and not args.force:
+                raise ValueError("Output already exists; use --force to replace a validation report")
+            if args.command == "validate":
+                data = evaluate_scenarios(
+                    args.truth, samples_dir=args.samples_dir, detection_rules=args.rules,
+                )
+                _assert_safe_output(
+                    args.output, [Path(scenario["source_file"]) for scenario in data["scenarios"]],
+                )
+                summary = data["summary"]
+                if args.output:
+                    _write_json(args.output, data)
+                print(f"Synthetic validation: {summary['scenarios']} scenarios, "
+                      f"{summary['events']} events, {summary['true_positives']} TP, "
+                      f"{summary['false_positives']} FP, {summary['false_negatives']} FN.")
+                print(f"Precision: {summary['precision']}; recall: {summary['recall']}; "
+                      f"F1: {summary['f1_score']} (synthetic scenario labels only).")
+            else:
+                data = run_benchmark(
+                    event_count=args.events, runs=args.runs,
+                    detection_rules=args.rules, correlation_rules=args.correlation_config,
+                )
+                if args.output:
+                    _write_json(args.output, data)
+                print(f"Synthetic in-memory benchmark: {data['event_count']} events, "
+                      f"{data['runs']} runs; median {data['median_ms']} ms, "
+                      f"p95 {data['p95_ms']} ms.")
+                print("Excludes raw parsing and disk I/O; timings vary by machine.")
+            if args.output:
+                print(f"Saved {'validation' if args.command == 'validate' else 'benchmark'} report: {args.output}")
+            return 0
+        except (OSError, ValueError, json.JSONDecodeError, ET.ParseError) as exc:
             print(f"security-log: error: {exc}", file=sys.stderr)
             return 2
 

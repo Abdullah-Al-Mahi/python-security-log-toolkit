@@ -122,3 +122,17 @@ files total. Re-running with the same destination errors unless you specify
 unexpected files, or the input investigation report.
 
 See `docs/REPORTING_GUIDE.md` for exact columns and usage from Python code.
+
+
+## Phase 8 commands
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase8_validation.json
+.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase8_benchmark.json
+```
+
+`validate`: compares rule/IP presence against labeled synthetic fixtures.
+`benchmark`: measures host-dependent **in-memory** processing only.
+Both commands accept `--force` when you intentionally overwrite an existing
+**generated** JSON report. Refer to `docs/SECURITY_VALIDATION_GUIDE.md` for
+input bounds and important limitations.

@@ -33,7 +33,7 @@ def test_new_commands_visible_in_help(capsys):
 
 def test_phase6_status(capsys):
     assert main(["status"]) == 0
-    assert "Current milestone: Phase 7" in capsys.readouterr().out
+    assert "Current milestone: Phase 8" in capsys.readouterr().out
 
 
 def test_config_show_json(capsys):
@@ -85,7 +85,7 @@ def test_doctor_json(capsys):
                  "--correlation-config", str(CORRELATION)]) == 0
     data = json.loads(capsys.readouterr().out)
     assert data["python_compatible"] is True
-    assert data["tool_version"] == "0.7.0"
+    assert data["tool_version"] == "0.8.0"
     assert data["mode"] == "offline-local"
 
 

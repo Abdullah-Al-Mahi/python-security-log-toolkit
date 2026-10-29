@@ -17,7 +17,7 @@ CORRELATION = ROOT / "config" / "correlation_rules.yaml"
 
 
 def test_version_is_defined():
-    assert __version__ == "0.7.0"
+    assert __version__ == "0.8.0"
 
 
 def test_parser_program_name():
@@ -37,7 +37,7 @@ def test_status_command(capsys):
     assert main(["status"]) == 0
     output = capsys.readouterr().out
     assert "Installation: OK" in output
-    assert "Current milestone: Phase 7" in output
+    assert "Current milestone: Phase 8" in output
     assert "Log parsing: Linux SSH and Windows XML available" in output
     assert "Detection engine: 3 configurable rules available" in output
     assert "Event correlation: Incident grouping available" in output

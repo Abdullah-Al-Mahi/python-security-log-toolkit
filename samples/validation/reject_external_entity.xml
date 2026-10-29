@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!DOCTYPE Events [<!ENTITY unsafe SYSTEM "file:///C:/Windows/win.ini">]>
+<Events><Event>&unsafe;</Event></Events>

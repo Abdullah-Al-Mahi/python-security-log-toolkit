@@ -13,8 +13,8 @@ subscriptions, or public deployment are needed.
 | 4 | Event correlation | Complete | `investigate()` and incident records |
 | 5 | Evidence-linked investigation timelines | Complete | `attach_timelines()`, `investigate_with_timelines()` |
 | 6 | Advanced CLI & configuration | Complete | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
-| 7 | CSV/JSON reporting and exports | **Current** | Shared export adapters for CLI and browser downloads |
-| 8 | Comprehensive security/scale/edge-case validation | Planned | Input-hardening and stable service contracts |
+| 7 | CSV/JSON reporting and exports | Complete | Shared export adapters for CLI and browser downloads |
+| 8 | Comprehensive security/scale/edge-case validation | **Current** | Input-hardening and stable service contracts |
 | 9 | GitHub portfolio, docs and demo scenarios | Planned | Reproducible offline demonstrations |
 | 10 | Modern local web dashboard | **Required** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
 
@@ -74,3 +74,16 @@ will call these services directly — no backend HTTP service is necessary.
 CSV sheets share `incident_id`, `finding_id`, and `evidence_id` references;
 timeline rows show linked evidence, **not complete security event history**.
 `export_manifest.json` includes SHA-256 digests for file integrity checking.
+
+## Phase 8 security and quality gates
+
+- Offline raw input bounds (16 MiB), normalized JSON cap (32 MiB), timeline
+  import cap (50 MiB), and Linux single-line cap (65,536 characters).
+- Reject XML DTD and entity declarations. Continue to accept supported UTF-16 exports.
+- Manually labeled scenario-level validation (6 positive rule+IP pairs across four
+  synthetic logs), with clear caveats: **not production accuracy**.
+- Bounded in-memory throughput benchmark (100–5000 events, 2–10 repetitions).
+- Extensive negative tests and regression suite; keep CLI and exporters stable.
+- Framework-neutral validation functions feed the future **required** Phase 10 UI.
+
+See `docs/SECURITY_VALIDATION_GUIDE.md`.

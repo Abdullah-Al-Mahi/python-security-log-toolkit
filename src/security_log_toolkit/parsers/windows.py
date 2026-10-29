@@ -5,6 +5,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from security_log_toolkit.events import SecurityEvent, normalize_ip
+from security_log_toolkit.security_limits import MAX_RAW_LOG_BYTES, require_bounded_file
 
 
 def _name(element: ET.Element) -> str:
@@ -36,8 +37,14 @@ def parse_windows_file(path: Path) -> tuple[list[SecurityEvent], int]:
     if path.suffix.lower() == ".evtx":
         raise ValueError("Binary .evtx is not supported; export Security events as XML first")
 
-    tree = ET.parse(path)
-    root = tree.getroot()
+    require_bounded_file(path, MAX_RAW_LOG_BYTES, "Raw log")
+    # Avoid DTDs, entity declarations, and file/network entity expansion.
+    # Strip NULs only for scanning UTF-16 encoded markup; ET parses original bytes.
+    raw = path.read_bytes()
+    declarations = raw.replace(b"\x00", b"").upper()
+    if b"<!DOCTYPE" in declarations or b"<!ENTITY" in declarations:
+        raise ValueError(f"{path}: DTD and entity declarations are not allowed")
+    root = ET.fromstring(raw)
     if _name(root) == "Event":
         records = [root]
     elif _name(root) == "Events":

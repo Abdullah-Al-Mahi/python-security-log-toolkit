@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "dataset_name": "Manually labeled synthetic authentication scenarios",
+  "limitations": "Rule-level scenario labels only; synthetic cases are not field accuracy or production false-positive estimates.",
+  "scenarios": [
+    {
+      "name": "linux_attack",
+      "format": "linux",
+      "file": "linux/attack_auth.log",
+      "year": 2026,
+      "utc_offset": "+08:00",
+      "expected": [
+        {"rule_id": "brute_force", "source_ip": "198.51.100.77"},
+        {"rule_id": "success_after_failures", "source_ip": "198.51.100.77"},
+        {"rule_id": "password_spray", "source_ip": "203.0.113.88"}
+      ]
+    },
+    {
+      "name": "windows_attack",
+      "format": "windows",
+      "file": "windows/attack_security.xml",
+      "expected": [
+        {"rule_id": "brute_force", "source_ip": "198.51.100.60"},
+        {"rule_id": "success_after_failures", "source_ip": "198.51.100.60"},
+        {"rule_id": "password_spray", "source_ip": "203.0.113.60"}
+      ]
+    },
+    {"name": "linux_below_threshold", "format": "linux", "file": "linux/auth.log", "year": 2026, "utc_offset": "+08:00", "expected": []},
+    {"name": "windows_below_threshold", "format": "windows", "file": "windows/security.xml", "expected": []}
+  ]
+}
