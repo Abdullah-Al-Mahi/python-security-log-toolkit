@@ -1,0 +1,33 @@
+# Optional CI. Runs only when deliberately started in GitHub's Actions UI.
+# No upload/release/deployment step; does not use repository secrets.
+name: Manual cross-platform tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python 3.13 (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out code without stored credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install free dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run automated regression tests
+        run: python -m pytest -q
+      - name: Inspect Git-tracked files for risk indicators
+        run: python scripts/audit_portfolio.py

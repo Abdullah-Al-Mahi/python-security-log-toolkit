@@ -1,206 +1,188 @@
 # Python Security Automation & Log Correlation Toolkit
 
-An **offline-first, free Python cybersecurity portfolio project** for analyzing Linux
-OpenSSH and Windows Security XML authentication logs, finding suspicious login
-patterns, correlating related events into incidents, and generating
-**evidence-linked investigation timelines**.
+**Offline-first security log analysis and incident investigation, built with Python.**
 
-**Version:** 0.8.0 | **Current milestone:** Phase 8 — Comprehensive Security Testing & Validation
+A cybersecurity portfolio project that turns Linux OpenSSH and Windows Security
+XML authentication events into reproducible **detections, correlated incidents,
+evidence-linked timelines and analyst-ready CSV/JSON reports**. Developed using
+free tools with no API key, cloud service, database server or subscription.
 
-> Phase 10 — a modern, local browser dashboard — is a required deliverable.
-> The CLI and future web UI will share the same Python services and data models.
+**Current milestone: Phase 9 — Portfolio & Documentation** · **Version: 0.9.0** ·
+**Phase 10 (modern local Streamlit dashboard) is REQUIRED and not yet implemented.**
 
-## Implemented features
+> **Reproducible demo data is synthetic.** A login-success alert does not prove
+> compromise. The synthetic detection labels and benchmarks are not production
+> detection-accuracy or SIEM-scale performance claims.
 
-- Normalization of Linux `sshd` syslog records (explicit year and UTC offset)
-- Windows Security XML Event IDs `4624` (success) and `4625` (failure)
-- JSON-safe UTC `SecurityEvent` records retaining original source references
-- YAML-configurable brute force, password spraying, and success-after-failures rules
-- Host/IP/platform-bounded incident correlation and stable incident identifiers
-- Evidence-linked investigation timelines, conservative summaries and suggested checks
-- `parse`, `detect`, `correlate`, `timeline` CLI commands (backward compatible)
-- **Phase 6:** `analyze` single-step raw-log workflow (no temporary normalized files)
-- **Phase 6:** `config show`, `config validate`, and `doctor` commands
-- **Phase 6:** output safeguards (`--force` required to replace existing reports)
-- **Phase 7:** `report` readable analyst summaries and `export` CSV/JSON investigation bundles
-- **Phase 7:** shared in-memory exporter with CSV spreadsheet-formula safeguards, checksums and safe overwrite rules
-- Framework-independent services for a future local Streamlit dashboard
-- Synthetic authentication datasets and a regression test suite
+## Why build this?
 
-## Requirements
+SOC investigations often combine evidence from different host log formats.
+Instead of simply counting failed logins, this toolkit normalizes the evidence,
+detects authentication patterns with configurable rules, links findings to
+incidents, reconstructs linked-evidence timelines, and exports traceable results.
 
-- Windows 11 + VS Code, Python 3.13+, Git
-- Free libraries: PyYAML and pytest (installed through `.[dev]`)
-- No paid API, network service, cloud account, or WSL required
+## Features at a glance
 
-## Windows setup or upgrade
+| Area | Implemented capability |
+|---|---|
+| Parsing | Linux `sshd` syslog; Windows Security XML Event IDs 4624/4625 |
+| Normalization | UTC timestamps, host/account/IP attributes and source references |
+| Detections | Brute force, password spray, and success after failures (YAML rules) |
+| Correlation | Stable IDs, host/IP/platform separation, bounded time windows |
+| Investigation | Chronological linked evidence with conservative analyst summaries |
+| Reporting | Five linked CSV tables, JSON investigation report, SHA-256 manifest |
+| CLI | `parse`, `detect`, `correlate`, `timeline`, `analyze`, `report`, `export`, `config`, `doctor` |
+| Security | Input size limits, XML entity/DTD rejection, configuration validation, output safeguards |
+| Quality | Adversarial tests, labeled synthetic detection scenarios, bounded benchmarks |
+| Portfolio | Repeatable offline demo, publication preflight and editable Mermaid architecture diagrams |
+| Planned | **Required Phase 10 local Streamlit dashboard** (not yet built) |
 
-Open the existing project folder in VS Code. From its PowerShell terminal:
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Linux SSH and Windows Security XML] --> B[Parse and normalize]
+    B --> C[Rule detection]
+    C --> D[Incident correlation]
+    D --> E[Evidence-linked timelines]
+    E --> F[Validated report/export service]
+    F --> G[CLI]
+    F -. Phase 10 .-> H[Local Streamlit dashboard - planned]
+    Y[YAML configuration] --> C
+    Y --> D
+```
+
+See [architecture, sequence and evidence relationship diagrams](docs/ARCHITECTURE.md)
+for complete, editable diagram source.
+
+## Run it locally (Windows 11 + VS Code)
+
+Requirements: **Python 3.13+**, VS Code terminal and Git. The project uses
+PyYAML at runtime and pytest for tests. These are freely available libraries.
+
+If you already have the project's `.venv`, **keep it**. In PowerShell at the
+repository root:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m security_log_toolkit --version
-.\.venv\Scripts\python.exe -m pytest -v
-```
-
-Do not recreate `.venv` or overwrite `.git` when applying a phase ZIP.
-
-## Recommended Phase 6 demo — one command on raw logs
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --rules config/detection_rules.yaml --correlation-config config/correlation_rules.yaml --output reports/phase6_analysis.json
-```
-
-Expected: **2 source files, 29 normalized events, 2 unsupported records, 6 findings,
-4 incidents, 4 timelines, and 22 evidence events linked to detections**.
-
-The command loads raw logs, normalizes, detects, correlates, constructs timelines,
-and returns one complete structured report. It works **without creating temporary
-normalized JSON files**. `--linux` and `--windows` may be repeated for multiple files.
-
-The Linux parser requires `--year` and `--utc-offset` in this new workflow to avoid
-assuming time metadata absent from traditional syslog. For Windows-only input,
-these options are not needed.
-
-Running the command again with the same `--output` is blocked unless you add
-`--force`. Source logs and YAML configuration are protected **even with** `--force`.
-Use `--summary` without `--output` to see a brief textual summary; by default,
-without `--output`, the full report is printed as JSON.
-
-
-## Phase 8 — Security hardening and validation (current)
-
-The shared backend now caps raw logs at **16 MiB per input**, normalized JSON
-at **32 MiB per file**, incident JSON timeline imports at **50 MiB**, and
-individual Linux syslog lines at **65,536 characters**. Windows XML parsing
-rejects DOCTYPE/entity declarations before parsing; valid UTF-8/UTF-16 XML
-continues to work. These limits mitigate accidental oversized inputs; they are
-not a guarantee against every denial-of-service or XML/parser attack.
-
-Evaluate **manually labeled synthetic scenarios**, not production accuracy:
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase8_validation.json
-```
-
-Expected on the bundled fixed scenarios: 4 cases, 41 events, **6 TP, 0 FP,
-0 FN**, and synthetic-scenario **precision/recall/F1 = 1.0**. This is *not* an
-estimate of real-world detection accuracy or false-positive rate.
-
-Measure bounded **in-memory detection + correlation + serialization** throughput:
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase8_benchmark.json
-```
-
-Latency/throughput are machine-dependent and exclude parsing and disk I/O.
-Full limitations, adversarial fixtures and test instructions appear in
-[`docs/SECURITY_VALIDATION_GUIDE.md`](docs/SECURITY_VALIDATION_GUIDE.md).
-The `quality` package offers Python services reusable by the required Phase 10
-private local web dashboard. No subscriptions or public hosting required.
-
-## Phase 7 demonstration — report summaries and exports
-
-Generate a complete investigation report if you have not done so already:
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --output reports/phase7_analysis.json
-```
-
-Read a concise summary and export CSV + JSON:
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/phase7_analysis.json
-.\.venv\Scripts\python.exe -m security_log_toolkit export --input reports/phase7_analysis.json --format both --output-dir reports/phase7_export
-```
-
-The export folder contains `summary.csv`, `incidents.csv`, `findings.csv`,
-`evidence.csv`, `timelines.csv`, `investigation.json`, and `export_manifest.json`.
-These tables are linked by stable incident, finding, and evidence identifiers.
-The manifest contains per-file SHA-256 hashes (integrity checks, **not signatures**).
-
-CSV data uses UTF-8 BOM for Windows Excel and prefixes cells beginning with
-spreadsheet formula syntax to reduce CSV injection risk. The original JSON retains
-its original values. Existing destination directories are protected unless you
-explicitly use `--force`, and even then only earlier toolkit-export directories
-without unexpected files can be replaced. Never export or commit sensitive real
-logs without authorization and redaction.
-
-You can export from **Phase 4 incident**, **Phase 5 timeline**, and **Phase 6/7
-full investigation** reports. A Phase 4 report has header-only `timelines.csv`.
-A normalized-only Phase 2 JSON file or standalone Phase 3 detection report is
-not an investigation report and cannot be exported by this command.
-
-See [`docs/REPORTING_GUIDE.md`](docs/REPORTING_GUIDE.md) for the reporting API.
-
-## Configuration inspection and environment check
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit config show
-.\.venv\Scripts\python.exe -m security_log_toolkit config validate
 .\.venv\Scripts\python.exe -m security_log_toolkit doctor
-.\.venv\Scripts\python.exe -m security_log_toolkit doctor --json
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Run from the project root, where the default YAML configurations reside.
-Use `--rules` and `--correlation-config` to point to custom YAML files.
-Configuration reading uses safe YAML parsing with strict field validation.
-
-## Original multi-step pipeline remains supported
+A new checkout can create a virtual environment using:
 
 ```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit parse linux samples/linux/attack_auth.log --year 2026 --utc-offset +08:00 --output reports/linux_attacks.json
-.\.venv\Scripts\python.exe -m security_log_toolkit parse windows samples/windows/attack_security.xml --output reports/windows_attacks.json
-.\.venv\Scripts\python.exe -m security_log_toolkit detect reports/linux_attacks.json reports/windows_attacks.json --output reports/phase3_findings.json
-.\.venv\Scripts\python.exe -m security_log_toolkit correlate reports/linux_attacks.json reports/windows_attacks.json --output reports/phase4_incidents.json
-.\.venv\Scripts\python.exe -m security_log_toolkit timeline --incident-report reports/phase4_incidents.json --output reports/phase5_timelines.json
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-You can also invoke `timeline` directly on normalized JSON files as before.
+On Linux/macOS use `python3.13 -m venv .venv` and `.venv/bin/python` instead.
+No Windows activation policy change is needed when calling the Python
+interpreter in the virtual environment directly.
 
-## Reusable Python services for Phase 10
+## One-command, reproducible portfolio demonstration
 
-```python
-from pathlib import Path
-from security_log_toolkit.workflow import RawLogSource, analyze_raw_logs
-from security_log_toolkit.configuration import inspect_configuration
+This command calls the **same backend used by the CLI** and writes demonstration
+artifacts derived only from the checked-in synthetic fixtures:
 
-settings = inspect_configuration(
-    Path("config/detection_rules.yaml"), Path("config/correlation_rules.yaml")
-)
-report = analyze_raw_logs(
-    [
-        RawLogSource("linux", Path("samples/linux/attack_auth.log")),
-        RawLogSource("windows", Path("samples/windows/attack_security.xml")),
-    ],
-    detection_rules=Path("config/detection_rules.yaml"),
-    correlation_rules=Path("config/correlation_rules.yaml"),
-    year=2026,
-    utc_offset="+08:00",
-)
+```powershell
+.\.venv\Scripts\python.exe scripts/demo_portfolio.py --output-dir reports/phase9_demo
 ```
 
-Both services return JSON-safe dicts and **never print or save reports**. This
-keeps the future Streamlit UI independent of CLI argument parsing. The older
-`investigate()` and `investigate_with_timelines()` functions remain supported.
+The output is intentionally created **once**. Repeated runs must specify a new
+directory, for example `reports/phase9_demo_2`; the script never overwrites an
+existing report directory.
 
-## Documents
+The demo writes an analyst summary, investigation JSON, five linked CSV tables,
+a complete export manifest, a synthetic validation summary, and a portfolio
+SHA-256 manifest. All files remain local and should stay outside Git.
 
-- [CLI Guide](docs/CLI_GUIDE.md) — examples, options, troubleshooting
-- [Investigation Guide](docs/INVESTIGATION_GUIDE.md) — cautious evidence interpretation
-- [Official Roadmap](docs/ROADMAP.md) — Phases 0–10, including required dashboard
+| Synthetic demo metric | Expected |
+|---|---:|
+| Authentication events | 29 |
+| Detection findings | 6 |
+| Correlated + individual incidents | 4 |
+| Linked evidence records | 22 |
+| Manually labeled scenarios / events | 4 / 41 |
+| Scenario rule/IP TP / FP / FN | 6 / 0 / 0 |
 
-## Scope, limitations and safety
+**Precision, recall and F1 = 1.0 on the fixed synthetic scenario labels only.**
+This does not describe real-world detector accuracy, account compromise, or
+statistical confidence. The benchmark reports in-memory service timing and is
+not an end-to-end ingest or UI performance test.
 
-- Use **synthetic or explicitly authorized** logs. Never commit real authentication
-  credentials, sensitive user activity or confidential incident records.
-- Reports in `reports/` are excluded from Git by the existing `.gitignore`.
-- Linux: classic OpenSSH syslog-format events. Windows: Security **XML exports only**,
-  not binary `.evtx`. Live monitoring, remote collection, and remediation are not present.
-- Incident timelines contain **only evidence linked to findings**, not full host history.
-- A successful login after multiple failures is not proof of compromise.
-- Phase 7 adds robust CSV/JSON export options; Phase 10 adds the local browser UI.
+## Everyday commands
+
+```powershell
+# Analyze raw Linux and Windows data and write a JSON investigation report
+.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --output reports/investigation.json
+
+# Read the analyst summary
+.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/investigation.json
+
+# Create five CSV tables, JSON and integrity manifest
+.\.venv\Scripts\python.exe -m security_log_toolkit export --input reports/investigation.json --format both --output-dir reports/investigation_exports
+
+# Verify labeled synthetic detections; independently check local throughput
+.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/validation.json
+.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/benchmark.json
+```
+
+An existing output path is normally rejected. The CLI supports explicitly
+controlled `--force` on selected commands; it protects input files and
+configuration paths. Native Windows binary `.evtx` is **not** supported: first
+export the relevant Security events to XML through authorized tooling.
+
+See [CLI guide](docs/CLI_GUIDE.md),
+[reporting guide](docs/REPORTING_GUIDE.md), and
+[validation limits](docs/SECURITY_VALIDATION_GUIDE.md).
+
+## Security and privacy / before GitHub publication
+
+Real authentication logs may contain personal identifiers, network details and
+security-relevant information. **Do not commit real log files, incident exports,
+credentials, private key material or `.venv/`.** Before any approved remote
+publication run:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/audit_portfolio.py
+git status --short
+git ls-files
+```
+
+The audit checks tracked paths and a limited set of token patterns **offline**;
+it cannot prove that a repository, its full Git history or its screenshots are
+free of secrets. Manually review your existing `.gitignore`, license, samples,
+and Git history using the [release checklist](docs/RELEASE_CHECKLIST.md).
+
+**Nothing in Phase 9 uploads or publishes this project.**
+A manual-only GitHub Actions test workflow is included for later optional use;
+its remote execution is not required and availability/usage allowances can vary.
+
+## Interview-ready documentation
+
+- [Five-minute demonstration script](docs/DEMO_WALKTHROUGH.md)
+- [Architecture and editable Mermaid diagrams](docs/ARCHITECTURE.md)
+- [Portfolio case study and CV bullets](docs/PORTFOLIO_CASE_STUDY.md)
+- [Screenshot capture guide](docs/SCREENSHOT_GUIDE.md) (no fabricated screenshots)
+- [Publication/privacy review](docs/RELEASE_CHECKLIST.md)
+- [Official Phase 0–10 roadmap](docs/ROADMAP.md)
+- [Phase 10 dashboard handoff](docs/PHASE10_HANDOFF.md)
+
+## Limitations and roadmap
+
+The tool is an **offline authentication-log prototype**, not a real-time SIEM or
+forensic chain-of-custody platform. Linked timelines are not complete system
+activity. It does not collect logs from remote hosts or establish attribution.
+
+**Phase 9 is documentation and portfolio preparation. Phase 10 is the required
+next deliverable:** a free local Streamlit dashboard with upload/analyze,
+incident exploration, charts, timeline detail, configuration and CSV/JSON
+downloads, all backed by the **existing** tested Python services. The CLI
+must remain fully functional.
 
 ## License
 
-MIT. See your existing `LICENSE` file, which is not replaced by phase updates.
+See the repository's existing [`LICENSE`](LICENSE) file; do not replace its
+original author or license terms without authorization.

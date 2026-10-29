@@ -14,8 +14,8 @@ subscriptions, or public deployment are needed.
 | 5 | Evidence-linked investigation timelines | Complete | `attach_timelines()`, `investigate_with_timelines()` |
 | 6 | Advanced CLI & configuration | Complete | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
 | 7 | CSV/JSON reporting and exports | Complete | Shared export adapters for CLI and browser downloads |
-| 8 | Comprehensive security/scale/edge-case validation | **Current** | Input-hardening and stable service contracts |
-| 9 | GitHub portfolio, docs and demo scenarios | Planned | Reproducible offline demonstrations |
+| 8 | Comprehensive security/scale/edge-case validation | Complete | Input-hardening and stable service contracts |
+| 9 | GitHub portfolio, docs and demo scenarios | **Current** | Reproducible offline demonstrations |
 | 10 | Modern local web dashboard | **Required** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
 
 ## Phase 6 interfaces
@@ -87,3 +87,14 @@ timeline rows show linked evidence, **not complete security event history**.
 - Framework-neutral validation functions feed the future **required** Phase 10 UI.
 
 See `docs/SECURITY_VALIDATION_GUIDE.md`.
+
+## Phase 9 portfolio deliverables
+
+- Recruiter-friendly README, accurate scope/limitations and a concise portfolio case study.
+- Editable Mermaid architecture, sequence and evidence-link diagrams.
+- Fully offline deterministic demonstration script consuming Phase 8 synthetic fixtures.
+- Offline Git-tracked-file publication preflight (not a comprehensive secret scan).
+- Optional **manual-only** GitHub Actions Python 3.13 Windows/Linux CI, **never publishing** anything automatically.
+- Private-by-default publication checklist and Phase 10 Streamlit handoff.
+
+Phase 10 remains REQUIRED, with the local CLI and existing services retained.

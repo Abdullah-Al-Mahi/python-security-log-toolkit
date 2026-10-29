@@ -1,0 +1,28 @@
+erDiagram
+    INVESTIGATION_REPORT ||--o{ INCIDENT : contains
+    INVESTIGATION_REPORT ||--o{ FINDING : contains
+    INCIDENT }o--o{ FINDING : correlates
+    INCIDENT ||--o{ EVIDENCE : links
+    INCIDENT ||--o{ TIMELINE_ENTRY : orders
+    EVIDENCE ||--o{ TIMELINE_ENTRY : supports
+    INCIDENT {
+        string incident_id
+        string severity
+        string source_ip
+        string platform
+    }
+    FINDING {
+        string finding_id
+        string rule_id
+        string severity
+    }
+    EVIDENCE {
+        string evidence_id
+        string source_file
+        string timestamp
+    }
+    TIMELINE_ENTRY {
+        string evidence_id
+        string incident_id
+        string stage
+    }

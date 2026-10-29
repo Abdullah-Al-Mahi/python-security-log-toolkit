@@ -1,0 +1,19 @@
+flowchart TD
+    subgraph Inputs[Offline authentication sources]
+        L[Linux OpenSSH syslog]
+        W[Windows Security 4624 / 4625 XML]
+    end
+    L --> P[Bounded parsers and UTC normalization]
+    W --> P
+    P --> E[SecurityEvent records]
+    E --> D[Configurable rule detection]
+    D --> C[Host/IP/platform bounded correlation]
+    C --> I[Evidence-linked incident timelines]
+    I --> R[Shared investigation report]
+    R --> T[Reusable reporting tables and export bytes]
+    T --> CLI[Command-line interface]
+    T --> WEB[Phase 10 local Streamlit UI - planned]
+    E --> V[Synthetic scenario validation]
+    D --> B[In-memory performance benchmark]
+    CFG[YAML detection and correlation settings] --> D
+    CFG --> C

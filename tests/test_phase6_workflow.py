@@ -58,7 +58,7 @@ def test_configuration_rejects_invalid_yaml(tmp_path, config_type):
 def test_raw_end_to_end_counts():
     result = analyze(RawLogSource("linux", LINUX), RawLogSource("windows", WINDOWS))
     assert result["workflow"] == "raw_log_analysis"
-    assert result["tool_version"] == "0.8.0"
+    assert result["tool_version"] == "0.9.0"
     assert result["raw_log_summary"]["records_examined"] == 31
     assert result["raw_log_summary"]["normalized_events"] == 29
     assert result["raw_log_summary"]["unsupported_records_skipped"] == 2

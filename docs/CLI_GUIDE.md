@@ -136,3 +136,23 @@ See `docs/REPORTING_GUIDE.md` for exact columns and usage from Python code.
 Both commands accept `--force` when you intentionally overwrite an existing
 **generated** JSON report. Refer to `docs/SECURITY_VALIDATION_GUIDE.md` for
 input bounds and important limitations.
+
+## Phase 9 — Reproducible portfolio and publication preflight
+
+From the repository root, after `pip install -e ".[dev]"`:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/demo_portfolio.py --output-dir reports/phase9_demo
+.\.venv\Scripts\python.exe scripts/audit_portfolio.py
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+The offline demo generates 11 files, including CSV/JSON exports and a SHA-256
+portfolio manifest. It uses **synthetic fixture data only** and refuses to
+overwrite the target folder; use a new directory name on repeat runs. The audit
+checks currently Git-tracked files for selected risk indicators. **It is not a
+complete secret scanner, historical Git review, or publication authorization.**
+
+See [`DEMO_WALKTHROUGH.md`](DEMO_WALKTHROUGH.md) and
+[`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md). The free local Streamlit
+interface is still a **required Phase 10 deliverable**, not a Phase 9 feature.

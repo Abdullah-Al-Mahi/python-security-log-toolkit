@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    actor Analyst
+    participant CLI as CLI / future local dashboard
+    participant Workflow as analyze_raw_logs
+    participant Rules as Detection and correlation
+    participant Timeline as Timeline service
+    participant Export as Reporting service
+    Analyst->>CLI: Provide synthetic Linux + Windows samples
+    CLI->>Workflow: Sources, year, UTC offset, YAML paths
+    Workflow->>Workflow: Parse, normalize, deduplicate
+    Workflow->>Rules: Evaluate auth rules and correlate
+    Rules-->>Workflow: Findings and incidents
+    Workflow->>Timeline: Add linked evidence and chronology
+    Timeline-->>CLI: JSON-safe investigation report
+    CLI->>Export: Build five CSV files + JSON + manifest
+    Export-->>Analyst: Offline evidence-linked artifacts
+    Note over Analyst,Export: Linked evidence is not complete log history

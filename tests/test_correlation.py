@@ -199,7 +199,7 @@ def test_investigate_returns_json_safe_report(tmp_path):
     for path, data in zip(files, (linux_data, win_data)):
         path.write_text(json.dumps(data), encoding="utf-8")
     report = investigate(files, detection_rules=RULES, correlation_rules=CORRELATION)
-    assert report["tool_version"] == "0.8.0"
+    assert report["tool_version"] == "0.9.0"
     assert report["summary"]["events_analyzed"] == 29
     assert report["summary"]["findings_analyzed"] == 6
     assert report["summary"]["total_incidents"] == 4

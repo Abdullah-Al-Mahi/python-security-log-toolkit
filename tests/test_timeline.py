@@ -243,7 +243,7 @@ def test_report_enrichment_preserves_existing_fields():
     result = attach_timelines(original)
     assert original == before
     assert result["summary"] == original["summary"]
-    assert result["timeline_generator_version"] == "0.8.0"
+    assert result["timeline_generator_version"] == "0.9.0"
     assert result["tool_version"] == "0.4.0"
     assert result["findings"] == original["findings"]
     assert result["timeline_summary"]["total_timelines"] == 1
