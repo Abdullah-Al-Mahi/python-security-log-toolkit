@@ -216,3 +216,46 @@ def test_readme_does_not_claim_dashboard_exists():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "not yet implemented" in readme
     assert "Phase 10" in readme
+
+
+def test_audit_allows_empty_reports_gitkeep(tmp_path):
+    marker = tmp_path / "reports/.gitkeep"
+    marker.parent.mkdir(parents=True)
+    marker.touch()
+    assert audit_paths(tmp_path, ["reports/.gitkeep"]) == []
+
+
+def test_audit_rejects_nonempty_reports_gitkeep(tmp_path):
+    marker = tmp_path / "reports/.gitkeep"
+    marker.parent.mkdir(parents=True)
+    marker.write_text("potentially sensitive content", encoding="utf-8")
+    issues = audit_paths(tmp_path, ["reports/.gitkeep"])
+    assert any("generated/private directory" in issue for issue in issues)
+
+
+def test_audit_still_rejects_tracked_report_json(tmp_path):
+    report = tmp_path / "reports/investigation.json"
+    report.parent.mkdir(parents=True)
+    report.write_text('{"host": "example"}', encoding="utf-8")
+    issues = audit_paths(tmp_path, ["reports/investigation.json"])
+    assert any("generated/private directory" in issue for issue in issues)
+
+
+def test_audit_does_not_exempt_nested_gitkeep(tmp_path):
+    marker = tmp_path / "reports/private/.gitkeep"
+    marker.parent.mkdir(parents=True)
+    marker.touch()
+    issues = audit_paths(tmp_path, ["reports/private/.gitkeep"])
+    assert any("generated/private directory" in issue for issue in issues)
+
+
+def test_audit_allows_tracked_empty_placeholder_in_git_index(tmp_path):
+    if not shutil.which("git"):
+        pytest.skip("Git not installed")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    marker = tmp_path / "reports/.gitkeep"
+    marker.parent.mkdir(parents=True)
+    marker.touch()
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-f", "reports/.gitkeep"], check=True)
+    assert tracked_paths(tmp_path) == ["reports/.gitkeep"]
+    assert audit_paths(tmp_path, tracked_paths(tmp_path)) == []

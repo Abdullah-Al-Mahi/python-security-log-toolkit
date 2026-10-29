@@ -44,6 +44,11 @@ def audit_paths(root: Path, paths: list[str]) -> list[str]:
             continue
         if not path.is_file():
             continue
+        # Preserve an empty Git placeholder for the reports directory. This
+        # exact zero-byte file carries no report data; all other files in
+        # reports/, including a nonempty .gitkeep, remain audit findings.
+        if relative.as_posix() == "reports/.gitkeep" and path.stat().st_size == 0:
+            continue
         if (relative.parts and relative.parts[0].lower() == "reports") or any(part.lower() in SENSITIVE_DIRS for part in relative.parts[:-1]):
             issues.append(f"{pathstr}: generated/private directory is tracked")
         if relative.name.lower() in SENSITIVE_NAMES or (relative.suffix.lower() in SENSITIVE_SUFFIXES):
