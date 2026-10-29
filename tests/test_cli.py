@@ -1,4 +1,4 @@
-"""End-to-end regression tests for CLI phases 1 through 4."""
+"""End-to-end regression tests for CLI phases 1 through 5."""
 
 import json
 import subprocess
@@ -17,7 +17,7 @@ CORRELATION = ROOT / "config" / "correlation_rules.yaml"
 
 
 def test_version_is_defined():
-    assert __version__ == "0.4.0"
+    assert __version__ == "0.5.0"
 
 
 def test_parser_program_name():
@@ -29,7 +29,7 @@ def test_help_command(capsys):
         main(["--help"])
     assert info.value.code == 0
     output = capsys.readouterr().out
-    for command in ("security-log", "status", "parse", "detect", "correlate"):
+    for command in ("security-log", "status", "parse", "detect", "correlate", "timeline"):
         assert command in output
 
 
@@ -37,7 +37,7 @@ def test_status_command(capsys):
     assert main(["status"]) == 0
     output = capsys.readouterr().out
     assert "Installation: OK" in output
-    assert "Current milestone: Phase 4" in output
+    assert "Current milestone: Phase 5" in output
     assert "Log parsing: Linux SSH and Windows XML available" in output
     assert "Detection engine: 3 configurable rules available" in output
     assert "Event correlation: Incident grouping available" in output
@@ -208,4 +208,89 @@ def test_correlate_prevents_overwriting(tmp_path, capsys, protected):
         "--correlation-config", str(CORRELATION),
         "--output", str(targets[protected]),
     ]) == 2
+    assert "must not overwrite" in capsys.readouterr().err
+
+
+def test_timeline_from_normalized_attack_datasets(tmp_path, capsys):
+    linux = tmp_path / "linux.json"
+    windows = tmp_path / "windows.json"
+    out = tmp_path / "timelines.json"
+    assert main([
+        "parse", "linux", str(SAMPLES / "linux" / "attack_auth.log"),
+        "--year", "2026", "--utc-offset", "+08:00", "--output", str(linux),
+    ]) == 0
+    assert main([
+        "parse", "windows", str(SAMPLES / "windows" / "attack_security.xml"),
+        "--output", str(windows),
+    ]) == 0
+    assert main([
+        "timeline", str(linux), str(windows), "--rules", str(RULES),
+        "--correlation-config", str(CORRELATION), "--output", str(out),
+    ]) == 0
+    report = json.loads(out.read_text(encoding="utf-8"))
+    assert report["summary"]["total_incidents"] == 4
+    assert report["timeline_summary"]["total_timelines"] == 4
+    assert report["timeline_summary"]["total_timeline_entries"] == 22
+    assert "Saved timeline JSON" in capsys.readouterr().out
+
+
+def test_timeline_from_existing_phase4_incident_report(tmp_path, capsys):
+    source = tmp_path / "phase4.json"
+    target = tmp_path / "phase5.json"
+    source.write_text(json.dumps({"summary": {}, "incidents": []}), encoding="utf-8")
+    assert main(["timeline", "--incident-report", str(source), "--output", str(target)]) == 0
+    assert json.loads(target.read_text(encoding="utf-8"))["timeline_summary"]["total_timelines"] == 0
+    assert json.loads(source.read_text(encoding="utf-8")) == {"summary": {}, "incidents": []}
+    assert "Saved timeline JSON" in capsys.readouterr().out
+
+
+def test_timeline_stdout_json(tmp_path, capsys):
+    source = tmp_path / "normalized.json"
+    source.write_text('{"events": []}', encoding="utf-8")
+    assert main(["timeline", str(source), "--rules", str(RULES),
+                 "--correlation-config", str(CORRELATION)]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["timeline_summary"]["total_timelines"] == 0
+
+
+def test_timeline_no_sources_returns_error(capsys):
+    assert main(["timeline"]) == 2
+    assert "either normalized input files" in capsys.readouterr().err
+
+
+def test_timeline_rejects_both_sources(tmp_path, capsys):
+    f = tmp_path / "source.json"
+    f.write_text('{"summary":{}, "incidents":[]}', encoding="utf-8")
+    assert main(["timeline", str(f), "--incident-report", str(f)]) == 2
+    assert "not both" in capsys.readouterr().err
+
+
+def test_timeline_missing_incident_report(tmp_path, capsys):
+    assert main(["timeline", "--incident-report", str(tmp_path / "missing.json")]) == 2
+    assert "error:" in capsys.readouterr().err
+
+
+def test_timeline_malformed_json_error(tmp_path, capsys):
+    f = tmp_path / "broken.json"
+    f.write_text('{ bad', encoding="utf-8")
+    assert main(["timeline", "--incident-report", str(f)]) == 2
+    assert "error:" in capsys.readouterr().err
+
+
+def test_timeline_rejects_overwrite_incident_report(tmp_path, capsys):
+    f = tmp_path / "phase4.json"
+    f.write_text('{"summary":{},"incidents":[]}', encoding="utf-8")
+    original = f.read_bytes()
+    assert main(["timeline", "--incident-report", str(f), "--output", str(f)]) == 2
+    assert f.read_bytes() == original
+    assert "must not overwrite" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("protected", ["input", "rules", "correlation"])
+def test_timeline_rejects_overwrite_sources(tmp_path, capsys, protected):
+    f = tmp_path / "events.json"
+    f.write_text('{"events":[]}', encoding="utf-8")
+    target = {"input": f, "rules": RULES, "correlation": CORRELATION}[protected]
+    assert main(["timeline", str(f), "--rules", str(RULES),
+                 "--correlation-config", str(CORRELATION), "--output", str(target)]) == 2
     assert "must not overwrite" in capsys.readouterr().err

@@ -1,4 +1,4 @@
-"""Command-line interface for parsing, detection and incident correlation."""
+"""Command-line interface for parsing, detection, correlation and timelines."""
 
 import argparse
 import json
@@ -15,6 +15,7 @@ from security_log_toolkit.detection import (
     load_normalized_events,
 )
 from security_log_toolkit.ingest import ingest_file
+from security_log_toolkit.investigation import attach_timelines, investigate_with_timelines
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -66,6 +67,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="YAML correlation settings (default: config/correlation_rules.yaml)",
     )
     correlate.add_argument("--output", type=Path, help="Optional JSON incident report destination")
+    timeline = commands.add_parser(
+        "timeline", help="Generate an evidence-linked incident investigation timeline."
+    )
+    timeline.add_argument(
+        "inputs", nargs="*", type=Path,
+        help="Normalized Phase 2 JSON files (omit when using --incident-report)",
+    )
+    timeline.add_argument(
+        "--incident-report", type=Path,
+        help="Enrich an existing Phase 4 incident JSON report without re-running detection",
+    )
+    timeline.add_argument(
+        "--rules", type=Path, default=Path("config/detection_rules.yaml"),
+        help="YAML detection configuration for normalized inputs",
+    )
+    timeline.add_argument(
+        "--correlation-config", type=Path,
+        default=Path("config/correlation_rules.yaml"),
+        help="YAML correlation configuration for normalized inputs",
+    )
+    timeline.add_argument("--output", type=Path, help="Optional timeline JSON destination")
     return parser
 
 
@@ -89,12 +111,13 @@ def main(argv: list[str] | None = None) -> int:
         print("--------------------")
         print(f"Version: {__version__}")
         print("Installation: OK")
-        print("Current milestone: Phase 4")
+        print("Current milestone: Phase 5")
         print("Log parsing: Linux SSH and Windows XML available")
         print("Normalization: Available")
         print("Detection engine: 3 configurable rules available")
         print("Event correlation: Incident grouping available")
-        print("Investigation reporting: Basic incident JSON available; timelines planned Phase 5")
+        print("Investigation timelines: Evidence-linked chronological timelines available")
+        print("Reporting: Investigation JSON available; CSV exports planned Phase 7")
         return 0
 
     if args.command == "parse":
@@ -166,6 +189,42 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(data, indent=2, ensure_ascii=False))
             return 0
         except (OSError, ValueError) as exc:
+            print(f"security-log: error: {exc}", file=sys.stderr)
+            return 2
+
+    if args.command == "timeline":
+        try:
+            if bool(args.incident_report) == bool(args.inputs):
+                raise ValueError(
+                    "Provide either normalized input files or --incident-report, not both"
+                )
+            protected = (
+                [args.incident_report] if args.incident_report else
+                [*args.inputs, args.rules, args.correlation_config]
+            )
+            _assert_safe_output(args.output, protected)
+            if args.incident_report:
+                with args.incident_report.open("r", encoding="utf-8-sig") as stream:
+                    original = json.load(stream)
+                data = attach_timelines(original)
+            else:
+                data = investigate_with_timelines(
+                    args.inputs,
+                    detection_rules=args.rules,
+                    correlation_rules=args.correlation_config,
+                )
+            if args.output:
+                _write_json(args.output, data)
+                summary = data["timeline_summary"]
+                print(
+                    f"Generated {summary['total_timelines']} incident timelines "
+                    f"containing {summary['total_timeline_entries']} evidence events."
+                )
+                print(f"Saved timeline JSON: {args.output}")
+            else:
+                print(json.dumps(data, indent=2, ensure_ascii=False))
+            return 0
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
             print(f"security-log: error: {exc}", file=sys.stderr)
             return 2
 
