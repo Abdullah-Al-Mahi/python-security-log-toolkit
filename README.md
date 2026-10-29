@@ -1,36 +1,39 @@
 # Python Security Automation & Log Correlation Toolkit
 
-A **free, offline-first** Python security automation project for analyzing Linux and
-Windows authentication logs, detecting suspicious patterns, correlating related
-findings and constructing evidence-linked investigation timelines. Built on Windows 11
-with Python 3.13, and suitable for a cybersecurity internship portfolio.
+An **offline-first, free Python cybersecurity portfolio project** for analyzing Linux
+OpenSSH and Windows Security XML authentication logs, finding suspicious login
+patterns, correlating related events into incidents, and generating
+**evidence-linked investigation timelines**.
 
-## Current milestone: Phase 5 — Version 0.5.0
+**Version:** 0.6.0 | **Current milestone:** Phase 6 — Advanced CLI & Configuration
 
-**Implemented:**
+> Phase 10 — a modern, local browser dashboard — is a required deliverable.
+> The CLI and future web UI will share the same Python services and data models.
 
-- Linux OpenSSH `sshd` authentication log parsing with explicit timezone/year inputs
-- Windows Security **XML** Event 4624/4625 parsing (not binary `.evtx`)
-- Consistent, timezone-aware `SecurityEvent` model and normalized JSON files
-- Three YAML-configurable detections: brute force, password spraying and login after failures
-- Incident correlation by platform, host, source IP and configurable time windows
-- Deterministic incident IDs with unique evidence references and linked finding IDs
-- **Evidence-linked, chronological incident timelines** with relative timing and source provenance
-- Conservative incident summaries, observed patterns and suggested investigation checks
-- Reusable `investigate_with_timelines()` and `attach_timelines()` services for Phase 10 web UI
-- Free local CLI, automated tests, and synthetic Linux/Windows attack datasets
+## Implemented features
 
-**Still planned:** Enhanced CLI (Phase 6), CSV and expanded JSON exports (Phase 7),
-security/robustness testing (Phase 8), portfolio documentation (Phase 9), and the
-**required modern, local Streamlit web dashboard (Phase 10)**.
+- Normalization of Linux `sshd` syslog records (explicit year and UTC offset)
+- Windows Security XML Event IDs `4624` (success) and `4625` (failure)
+- JSON-safe UTC `SecurityEvent` records retaining original source references
+- YAML-configurable brute force, password spraying, and success-after-failures rules
+- Host/IP/platform-bounded incident correlation and stable incident identifiers
+- Evidence-linked investigation timelines, conservative summaries and suggested checks
+- `parse`, `detect`, `correlate`, `timeline` CLI commands (backward compatible)
+- **Phase 6:** `analyze` single-step raw-log workflow (no temporary normalized files)
+- **Phase 6:** `config show`, `config validate`, and `doctor` commands
+- **Phase 6:** output safeguards (`--force` required to replace existing reports)
+- Framework-independent services for a future local Streamlit dashboard
+- Synthetic authentication datasets and a regression test suite
 
-Official roadmap: [docs/ROADMAP.md](docs/ROADMAP.md).
-Investigation interpretation: [docs/INVESTIGATION_GUIDE.md](docs/INVESTIGATION_GUIDE.md).
+## Requirements
 
-## Windows setup
+- Windows 11 + VS Code, Python 3.13+, Git
+- Free libraries: PyYAML and pytest (installed through `.[dev]`)
+- No paid API, network service, cloud account, or WSL required
 
-Use the existing project `.venv` — do **not** recreate it or delete Git history.
-From the project root in VS Code PowerShell:
+## Windows setup or upgrade
+
+Open the existing project folder in VS Code. From its PowerShell terminal:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
@@ -38,121 +41,98 @@ From the project root in VS Code PowerShell:
 .\.venv\Scripts\python.exe -m pytest -v
 ```
 
-No additional third-party dependency is required beyond Phase 4's PyYAML and pytest.
+Do not recreate `.venv` or overwrite `.git` when applying a phase ZIP.
 
-## End-to-end sample workflow
+## Recommended Phase 6 demo — one command on raw logs
 
-### 1. Parse synthetic authentication logs
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --rules config/detection_rules.yaml --correlation-config config/correlation_rules.yaml --output reports/phase6_analysis.json
+```
+
+Expected: **2 source files, 29 normalized events, 2 unsupported records, 6 findings,
+4 incidents, 4 timelines, and 22 evidence events linked to detections**.
+
+The command loads raw logs, normalizes, detects, correlates, constructs timelines,
+and returns one complete structured report. It works **without creating temporary
+normalized JSON files**. `--linux` and `--windows` may be repeated for multiple files.
+
+The Linux parser requires `--year` and `--utc-offset` in this new workflow to avoid
+assuming time metadata absent from traditional syslog. For Windows-only input,
+these options are not needed.
+
+Running the command again with the same `--output` is blocked unless you add
+`--force`. Source logs and YAML configuration are protected **even with** `--force`.
+Use `--summary` without `--output` to see a brief textual summary; by default,
+without `--output`, the full report is printed as JSON.
+
+## Configuration inspection and environment check
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit config show
+.\.venv\Scripts\python.exe -m security_log_toolkit config validate
+.\.venv\Scripts\python.exe -m security_log_toolkit doctor
+.\.venv\Scripts\python.exe -m security_log_toolkit doctor --json
+```
+
+Run from the project root, where the default YAML configurations reside.
+Use `--rules` and `--correlation-config` to point to custom YAML files.
+Configuration reading uses safe YAML parsing with strict field validation.
+
+## Original multi-step pipeline remains supported
 
 ```powershell
 .\.venv\Scripts\python.exe -m security_log_toolkit parse linux samples/linux/attack_auth.log --year 2026 --utc-offset +08:00 --output reports/linux_attacks.json
 .\.venv\Scripts\python.exe -m security_log_toolkit parse windows samples/windows/attack_security.xml --output reports/windows_attacks.json
+.\.venv\Scripts\python.exe -m security_log_toolkit detect reports/linux_attacks.json reports/windows_attacks.json --output reports/phase3_findings.json
+.\.venv\Scripts\python.exe -m security_log_toolkit correlate reports/linux_attacks.json reports/windows_attacks.json --output reports/phase4_incidents.json
+.\.venv\Scripts\python.exe -m security_log_toolkit timeline --incident-report reports/phase4_incidents.json --output reports/phase5_timelines.json
 ```
 
-Expected: **15 Linux** events and **14 Windows** events; each sample skips one unsupported
-record. Linux syslog has no embedded year or timezone, so these are specified.
+You can also invoke `timeline` directly on normalized JSON files as before.
 
-### 2. Detect suspicious activity (Phase 3)
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit detect reports/linux_attacks.json reports/windows_attacks.json --rules config/detection_rules.yaml --output reports/phase3_findings.json
-```
-
-Expected: **six findings** (two each for brute force, password spraying, and successful
-login after failures).
-
-### 3. Correlate findings (Phase 4)
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit correlate reports/linux_attacks.json reports/windows_attacks.json --rules config/detection_rules.yaml --correlation-config config/correlation_rules.yaml --output reports/phase4_incidents.json
-```
-
-Expected: **four incidents** from six findings (two correlated and two single-finding).
-
-### 4. Build evidence-linked timelines (new Phase 5)
-
-**Option A — Create timelines directly from normalized files:**
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit timeline reports/linux_attacks.json reports/windows_attacks.json --rules config/detection_rules.yaml --correlation-config config/correlation_rules.yaml --output reports/phase5_timelines.json
-```
-
-**Option B — Enrich the existing Phase 4 incident JSON without rerunning detection:**
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit timeline --incident-report reports/phase4_incidents.json --output reports/phase5_timelines_from_report.json
-```
-
-Both options should produce **four incident timelines containing 22 linked evidence
-entries**. These are the **22 deduplicated evidence events associated with findings**,
-not all 29 normalized input events. Two incidents include an observed successful login.
-
-Each incident gains a `timeline` object containing:
-
-- `scope`: `linked_detection_evidence_only` (an explicit coverage warning)
-- `first_seen`, `last_seen`, `duration_seconds`, and `event_count`
-- `failed_logins`, `successful_logins`, `affected_accounts`, `observed_pattern`
-- Conservative `analyst_summary` and `recommended_checks` (not automated actions)
-- `events` sorted by UTC timestamp, each containing `sequence`, `evidence_id`,
-  `seconds_from_start`, source filename/line/record ID, and `linked_finding_ids`
-
-The top-level report adds `timeline_summary` and `timeline_generator_version`, while
-keeping all Phase 4 fields intact. When enhancing a Phase 4 file, the original
-`tool_version` stays `0.4.0` for provenance and the new `timeline_generator_version`
-identifies the `0.5.0` enrichment.
-
-### Show a timeline in PowerShell
-
-```powershell
-$report = Get-Content 'reports\phase5_timelines.json' -Raw | ConvertFrom-Json
-$report.timeline_summary | Format-List
-$first = $report.incidents | Select-Object -First 1
-$first.timeline | Select-Object incident_id, observed_pattern, analyst_summary | Format-List
-$first.timeline.events | Select-Object sequence, timestamp, stage, account, evidence_id | Format-Table -AutoSize
-```
-
-## Development tests
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -v
-```
-
-The full suite includes regression coverage for Phases 1–4 and additional Phase 5
-validation for ordering, UTC offsets, evidence traceability, Windows domains,
-non-mutating services, output protection and sample workflows.
-
-## Reusable Python API for the future web dashboard
+## Reusable Python services for Phase 10
 
 ```python
 from pathlib import Path
-from security_log_toolkit.investigation import investigate_with_timelines, attach_timelines
+from security_log_toolkit.workflow import RawLogSource, analyze_raw_logs
+from security_log_toolkit.configuration import inspect_configuration
 
-report = investigate_with_timelines(
-    [Path("reports/linux_attacks.json"), Path("reports/windows_attacks.json")],
+settings = inspect_configuration(
+    Path("config/detection_rules.yaml"), Path("config/correlation_rules.yaml")
+)
+report = analyze_raw_logs(
+    [
+        RawLogSource("linux", Path("samples/linux/attack_auth.log")),
+        RawLogSource("windows", Path("samples/windows/attack_security.xml")),
+    ],
     detection_rules=Path("config/detection_rules.yaml"),
     correlation_rules=Path("config/correlation_rules.yaml"),
+    year=2026,
+    utc_offset="+08:00",
 )
-
-# Or enrich a Phase 4 report already held in memory:
-# timeline_report = attach_timelines(phase4_report_dict)
 ```
 
-The analysis services have **no dependency on terminal output, Streamlit, a database,
-cloud hosting or paid APIs**. Phase 10 will reuse them in a browser dashboard running
-on localhost.
+Both services return JSON-safe dicts and **never print or save reports**. This
+keeps the future Streamlit UI independent of CLI argument parsing. The older
+`investigate()` and `investigate_with_timelines()` functions remain supported.
 
-## Important evidence limitations
+## Documents
 
-- These timelines include **only events linked to detection findings**, not every log
-  entry. The raw input may contain events absent from the incident timeline.
-- A successful authentication after failures is an **observation**, not proof of
-  compromise or attribution. Investigators must corroborate with other records.
-- Read and analyze **only synthetic or explicitly authorized security logs**. Do not
-  publish private user, IP or authentication data in a public portfolio.
-- The current tool supports Windows Security **XML** exports, not binary `.evtx`.
-- The tool does not yet perform live collection, remote monitoring, or remediation.
-- Outputs under `reports/` are excluded from Git to avoid accidental disclosure.
+- [CLI Guide](docs/CLI_GUIDE.md) — examples, options, troubleshooting
+- [Investigation Guide](docs/INVESTIGATION_GUIDE.md) — cautious evidence interpretation
+- [Official Roadmap](docs/ROADMAP.md) — Phases 0–10, including required dashboard
+
+## Scope, limitations and safety
+
+- Use **synthetic or explicitly authorized** logs. Never commit real authentication
+  credentials, sensitive user activity or confidential incident records.
+- Reports in `reports/` are excluded from Git by the existing `.gitignore`.
+- Linux: classic OpenSSH syslog-format events. Windows: Security **XML exports only**,
+  not binary `.evtx`. Live monitoring, remote collection, and remediation are not present.
+- Incident timelines contain **only evidence linked to findings**, not full host history.
+- A successful login after multiple failures is not proof of compromise.
+- Phase 7 adds robust CSV/JSON export options; Phase 10 adds the local browser UI.
 
 ## License
 
-MIT — see your existing `LICENSE` file. Phase updates do not replace that file.
+MIT. See your existing `LICENSE` file, which is not replaced by phase updates.

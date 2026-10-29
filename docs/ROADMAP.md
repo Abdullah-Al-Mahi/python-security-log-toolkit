@@ -1,52 +1,64 @@
 # Official project roadmap — Phases 0–10
 
-**Phase 10 (Modern Web Dashboard) is a REQUIRED deliverable.** The project will have
-one Python analysis backend powering **both** an advanced CLI and a local browser UI.
-No paid APIs, subscriptions or public deployment are needed.
+**Phase 10 (Modern Web Dashboard) is REQUIRED.** One offline Python analysis backend
+powers both a CLI and a local browser-based user interface. No paid APIs, hosting,
+subscriptions, or public deployment are needed.
 
-| Phase | Scope | State | Dashboard-facing architecture |
+| Phase | Milestone | Status | Reusable backend/dashboard relevance |
 |---|---|---|---|
-| 0 | Windows 11 and developer tools | Complete | Verified Python 3.13, Git, VS Code |
-| 1 | Git/package foundation and CLI | Complete | Importable source package |
-| 2 | Linux/Windows parsing and normalization | Complete | `SecurityEvent` model |
-| 3 | Authentication security detection | Complete | Data-only `Finding` records and safe YAML rules |
-| 4 | Incident correlation | Complete | `investigate()` creates JSON-safe incidents |
-| 5 | Analyst timelines and evidence context | Current | `investigate_with_timelines()` / `attach_timelines()`; no UI dependencies |
-| 6 | CLI ergonomics and configuration | Planned | Consistent service and configuration interfaces |
-| 7 | Robust CSV / JSON reporting and exports | Planned | Shared formatters for CLI and browser downloads |
-| 8 | Validation, security, scale and edge cases | Planned | Test backend and UI-facing service contracts |
-| 9 | GitHub portfolio, documentation and demos | Planned | Reproducible offline demo materials |
-| 10 | Modern web dashboard | **Required** | Streamlit local UI reuses existing backend and export services |
+| 0 | Windows 11 development environment | Complete | Python 3.13, VS Code, Git verified |
+| 1 | Python package and Git foundation | Complete | Installable package and tests |
+| 2 | Linux/Windows ingestion & UTC normalization | Complete | `SecurityEvent`, `ingest_file()` |
+| 3 | YAML-based authentication detections | Complete | `detect_events()` and validated rules |
+| 4 | Event correlation | Complete | `investigate()` and incident records |
+| 5 | Evidence-linked investigation timelines | Complete | `attach_timelines()`, `investigate_with_timelines()` |
+| 6 | Advanced CLI & configuration | **Current** | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
+| 7 | CSV/JSON reporting and exports | Planned | Shared export adapters for CLI and browser downloads |
+| 8 | Comprehensive security/scale/edge-case validation | Planned | Input-hardening and stable service contracts |
+| 9 | GitHub portfolio, docs and demo scenarios | Planned | Reproducible offline demonstrations |
+| 10 | Modern local web dashboard | **Required** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
 
-## Phase 5 service contract
+## Phase 6 interfaces
+
+The new `analyze` CLI uses `analyze_raw_logs()` to accept raw files directly and
+return complete investigation timelines without intermediate files. Settings
+are validated by `inspect_configuration()` and the existing safe YAML loaders.
 
 ```python
 from pathlib import Path
-from security_log_toolkit.investigation import investigate_with_timelines, attach_timelines
+from security_log_toolkit.workflow import RawLogSource, analyze_raw_logs
 
-report = investigate_with_timelines(
-    [Path("reports/linux_attacks.json"), Path("reports/windows_attacks.json")],
+report = analyze_raw_logs(
+    [RawLogSource("windows", Path("samples/windows/attack_security.xml"))],
     detection_rules=Path("config/detection_rules.yaml"),
     correlation_rules=Path("config/correlation_rules.yaml"),
 )
-
-# Or enrich a precomputed Phase 4 report without re-parsing files:
-# enhanced = attach_timelines(phase4_report)
 ```
 
-A Phase 5 report includes all Phase 4 report fields, plus a per-incident `timeline`
-and top-level `timeline_summary` plus `timeline_generator_version`. This is designed for eventual dashboard filtering,
-incident detail views and interactive timelines.
+`analyze_raw_logs()` uses `investigate_events()` in correlation/service.py,
+which also powers the existing file-based `investigate()` function.
+The services are framework-neutral and return data rather than printing output.
 
-## Safe interpretations and scope boundaries
+### Phase 10 UI direction (design contract)
 
-- **Evidence scope:** incident timelines include only authentication events supporting
-  one or more detections. They are not comprehensive activity timelines.
-- **Identity boundaries:** Linux usernames are case-sensitive. Windows accounts use
-  case-insensitive usernames with domains when present. Correlation is bounded by
-  source IP, host and platform and does not identify real adversaries.
-- **Analyst context:** suggested checks are **recommendations**, not actions the tool
-  performs; labels are observations, not verified compromises.
-- **Input limitations:** offline Linux OpenSSH syslog and Windows Security XML only.
-- **Data safety:** use synthetic or approved datasets. Do not expose real log records
-  via public GitHub or third-party hosting.
+The local dashboard will display:
+
+- Upload of Linux `.log`/Windows `.xml` files with year/UTC inputs when needed
+- Analysis summary cards, charts for outcomes and rule severity
+- Searchable incident and finding tables with host/IP/account filters
+- Evidence-linked incident detail timelines and analyst summaries
+- Configuration inspector and adjustable rules with validation
+- CSV and JSON report downloads from shared Phase 7 exporters
+
+Do not build a second detection engine inside the dashboard. Use the shared
+Python services. The interface is intended for **localhost** by default;
+private local use requires no external hosting.
+
+## Evidence and input limitations
+
+- Timelines represent linked detection evidence only, **not full log history**.
+- Detections are indicators for investigation, not proven compromise or attribution.
+- Correlation separates platforms/hosts/source IPs and respects time boundaries.
+- Linux OpenSSH syslog requires user-supplied year and UTC offset; Windows events
+  are XML 4624/4625 exports, not binary `.evtx`.
+- Raw logs can contain personal data; do not upload private logs to public services.
