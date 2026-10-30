@@ -1,3 +1,4 @@
+
 [server]
 address = "127.0.0.1"
 headless = true
@@ -10,8 +11,23 @@ gatherUsageStats = false
 
 [theme]
 base = "dark"
-primaryColor = "#35BCA6"
-backgroundColor = "#0A101B"
-secondaryBackgroundColor = "#101E2E"
-textColor = "#ECF5FF"
-font = "sans serif"
+primaryColor = "#56E3C5"
+backgroundColor = "#080E18"
+secondaryBackgroundColor = "#111F31"
+textColor = "#EFF8FF"
+borderColor = "#273B4F"
+dataframeBorderColor = "#273B4F"
+dataframeHeaderBackgroundColor = "#17263A"
+baseRadius = "large"
+buttonRadius = "large"
+showWidgetBorder = true
+font = "'Segoe UI Variable', 'Aptos', sans-serif"
+headingFont = "'Segoe UI Variable Display', 'Aptos Display', sans-serif"
+codeFont = "'Cascadia Code', 'Consolas', monospace"
+baseFontSize = 15
+chartCategoricalColors = ["#56E3C5", "#A9A4FF", "#71BDF4", "#FFBD75", "#FB708A"]
+
+[theme.sidebar]
+backgroundColor = "#0D1828"
+secondaryBackgroundColor = "#111F31"
+textColor = "#DCECF8"
