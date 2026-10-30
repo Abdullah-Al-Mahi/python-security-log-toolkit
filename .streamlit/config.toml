@@ -11,23 +11,37 @@ gatherUsageStats = false
 
 [theme]
 base = "dark"
-primaryColor = "#56E3C5"
-backgroundColor = "#080E18"
-secondaryBackgroundColor = "#111F31"
-textColor = "#EFF8FF"
-borderColor = "#273B4F"
-dataframeBorderColor = "#273B4F"
-dataframeHeaderBackgroundColor = "#17263A"
-baseRadius = "large"
-buttonRadius = "large"
-showWidgetBorder = true
-font = "'Segoe UI Variable', 'Aptos', sans-serif"
-headingFont = "'Segoe UI Variable Display', 'Aptos Display', sans-serif"
+font = "'Segoe UI Variable', 'Aptos', 'Segoe UI', sans-serif"
+headingFont = "'Segoe UI Variable Display', 'Aptos Display', 'Segoe UI', sans-serif"
 codeFont = "'Cascadia Code', 'Consolas', monospace"
 baseFontSize = 15
-chartCategoricalColors = ["#56E3C5", "#A9A4FF", "#71BDF4", "#FFBD75", "#FB708A"]
+baseRadius = "large"
+buttonRadius = "medium"
+showWidgetBorder = true
+chartCategoricalColors = ["#00D6C3", "#947AFF", "#FFAD4E", "#FF5473", "#4AA8FF"]
 
-[theme.sidebar]
-backgroundColor = "#0D1828"
-secondaryBackgroundColor = "#111F31"
-textColor = "#DCECF8"
+[theme.dark]
+primaryColor = "#00D6C3"
+backgroundColor = "#0B1019"
+secondaryBackgroundColor = "#151B29"
+textColor = "#F2F7FF"
+borderColor = "#2A3549"
+dataframeHeaderBackgroundColor = "#202A3C"
+
+[theme.dark.sidebar]
+backgroundColor = "#121723"
+secondaryBackgroundColor = "#1B2333"
+textColor = "#F2F7FF"
+
+[theme.light]
+primaryColor = "#007F85"
+backgroundColor = "#EFF4FB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#16263B"
+borderColor = "#D8E3EF"
+dataframeHeaderBackgroundColor = "#E8EFF8"
+
+[theme.light.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F8FF"
+textColor = "#16263B"

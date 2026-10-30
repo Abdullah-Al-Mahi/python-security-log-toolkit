@@ -1,15 +1,12 @@
 
-"""Sentinel SOC Dashboard — professional local-first interface.
+"""Sentinel / Prism UI — local SOC investigation dashboard.
 
-Run from project root:
-    python -m streamlit run dashboard/app.py
-
-The existing security analysis backend remains the source of truth.
-No remote APIs, raw-upload persistence, or automatic publishing.
+Presentation only: all security decisions and exported data come from the
+existing security_log_toolkit services. No telemetry or external assets.
 """
-
 from __future__ import annotations
 
+from collections import Counter
 from contextlib import nullcontext
 from html import escape
 from pathlib import Path
@@ -18,222 +15,222 @@ import sys
 import pandas as pd
 import streamlit as st
 
-
-# -----------------------------------------------------------
-# PROJECT PATHS AND BACKEND IMPORTS
-# -----------------------------------------------------------
-
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from security_log_toolkit import __version__
-
 from security_log_toolkit.dashboard import (
-    UploadedSource,
-    analyze_uploaded_sources,
-    build_dashboard_downloads,
-    build_dashboard_zip,
-    build_rule_yaml,
-    build_correlation_yaml,
-    filter_incidents,
-    incident_detail,
-    load_investigation_json,
-    load_synthetic_demo,
-    severity_summary,
-    rule_summary,
-    timeline_activity,
+    UploadedSource, analyze_uploaded_sources, build_dashboard_downloads,
+    build_dashboard_zip, build_rule_yaml, build_correlation_yaml,
+    filter_incidents, incident_detail, load_investigation_json,
+    load_synthetic_demo, severity_summary, rule_summary, timeline_activity,
     top_sources,
 )
-
 from security_log_toolkit.configuration import inspect_configuration
 from security_log_toolkit.quality import evaluate_scenarios, run_benchmark
 from security_log_toolkit.reporting import build_report_tables, summarize_report
 from security_log_toolkit.security_limits import MAX_RAW_LOG_BYTES
 
-
 DETECTION_PATH = ROOT / "config/detection_rules.yaml"
 CORRELATION_PATH = ROOT / "config/correlation_rules.yaml"
 
-
-# -----------------------------------------------------------
-# PAGE CONFIGURATION AND DESIGN SYSTEM
-# -----------------------------------------------------------
+PAGES = (
+    "Command Center", "Log Intake", "Incident Explorer", "Evidence Timeline",
+    "Detection Lab", "Validation & Performance", "Report Center",
+)
+PAGE_ICONS = ("◫", "⇧", "◇", "≋", "⚙", "◉", "⇩")
+SEVERITY_COLORS = {
+    "critical": "#FF526F", "high": "#FFAB42",
+    "medium": "#E1BF31", "low": "#17B9AA",
+}
 
 st.set_page_config(
-    page_title="Sentinel | Security Log Toolkit",
+    page_title="Sentinel Prism | Security Operations",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Read the local stylesheet. No Google Fonts or external CDN.
-CSS_PATH = ROOT / "dashboard/sentinel.css"
-
+# Local stylesheet, with no external font or API requests.
 st.markdown(
-    "<style>" + CSS_PATH.read_text(encoding="utf-8") + "</style>",
+    "<style>"
+    + (ROOT / "dashboard/sentinel.css").read_text(encoding="utf-8")
+    + "</style>",
+    unsafe_allow_html=True,
+)
+
+# Browser-session appearance control.
+if "ui_mode" not in st.session_state:
+    st.session_state.ui_mode = "dark"
+
+mode = "light" if st.session_state.ui_mode == "light" else "dark"
+st.markdown(
+    f'<span id="sentinel-{mode}-mode" hidden></span>',
     unsafe_allow_html=True,
 )
 
 
 # -----------------------------------------------------------
-# REUSABLE UI COMPONENTS
+# REUSABLE PRESENTATION COMPONENTS
 # -----------------------------------------------------------
 
-def _hero(
-    title: str,
-    description: str,
-    tag: str = "SECURITY OPERATIONS",
-) -> None:
-    """Render a premium page header using fixed application text."""
+def _html(value: object) -> str:
+    return escape(str(value), quote=True)
 
+
+def _header(title: str, subtitle: str, section: str) -> None:
     st.markdown(
-        '<div class="sentinel-topline">'
-        '<span class="sentinel-breadcrumb">'
-        'SENTINEL <strong>/ ' + escape(tag) + '</strong>'
-        '</span>'
-        '<span class="sentinel-top-status">'
-        '● LOCAL SESSION &nbsp; · &nbsp; NO CLOUD SYNC'
-        '</span>'
+        '<div class="prism-breadcrumb">'
+        'SECURITY OPERATIONS <span> / '
+        + _html(section.upper())
+        + '</span></div>'
+        '<div class="prism-pagehead"><div>'
+        '<div class="prism-kicker">'
+        '<span class="prism-live-dot"></span>'
+        ' PRIVATE INVESTIGATION WORKSPACE</div>'
+        '<h1>' + _html(title) + '</h1>'
+        '<p>' + _html(subtitle) + '</p>'
         '</div>'
-
-        '<section class="sentinel-hero">'
-        '<span class="sentinel-eyebrow">'
-        + escape(tag) +
-        '</span>'
-
-        '<h1>' + escape(title) + '</h1>'
-        '<p>' + escape(description) + '</p>'
-
-        '<div class="sentinel-hero-line">'
-        '<span class="sentinel-hero-pill">'
-        '<strong>●</strong> Local analysis'
-        '</span>'
-        '<span class="sentinel-hero-pill">'
-        'Evidence-linked investigations'
-        '</span>'
-        '<span class="sentinel-hero-pill">'
-        'Offline-first workspace'
-        '</span>'
-        '</div>'
-        '</section>',
-        unsafe_allow_html=True,
-    )
-
-
-def _section(name: str, meta: str = "") -> None:
-    """Render a compact section heading."""
-
-    st.markdown(
-        '<div class="sentinel-section-title">'
-        '<strong>' + escape(name) + '</strong>'
-        '<span>' + escape(meta) + '</span>'
+        '<div class="prism-header-mark">◈</div>'
         '</div>',
         unsafe_allow_html=True,
     )
 
 
-def _scope_label(report: dict) -> str:
-    """Return the current report's data-source description."""
-
-    mode = report.get("dashboard_input_type")
-
-    return {
-        "bundled_synthetic_demo":
-            "SYNTHETIC DEMO — fixed sample authentication activity",
-
-        "user_upload":
-            "USER UPLOAD — processed locally; no raw files retained on disk",
-
-        "imported_report":
-            "IMPORTED REPORT — read-only view of supplied investigation JSON",
-    }.get(mode, "LOCAL INVESTIGATION")
-
-
-def _scope(report: dict) -> None:
-    """Render the source classification."""
-
+def _section(title: str, subtitle: str = "") -> None:
     st.markdown(
-        '<div class="sentinel-scope">'
-        + escape(_scope_label(report))
-        + '</div>',
+        '<div class="prism-section">'
+        '<span>' + _html(title) + '</span>'
+        '<small>' + _html(subtitle) + '</small>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
 
-def _current_report() -> dict | None:
-    """Get the current report, loading the synthetic demo initially."""
+def _scope(report: dict) -> None:
+    mapping = {
+        "bundled_synthetic_demo": (
+            "SYNTHETIC DATA",
+            "Bundled lab scenarios only",
+        ),
+        "user_upload": (
+            "LOCAL UPLOAD",
+            "Authorized files · temporary processing",
+        ),
+        "imported_report": (
+            "IMPORTED JSON",
+            "Existing investigation · read-only source",
+        ),
+    }
 
+    tag, detail = mapping.get(
+        report.get("dashboard_input_type"),
+        ("LOCAL DATA", "Investigation data"),
+    )
+
+    st.markdown(
+        '<div class="prism-scope">'
+        '<span class="prism-scope-tag">'
+        + _html(tag)
+        + '</span><span>'
+        + _html(detail)
+        + '</span></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _report() -> dict | None:
     if "current_report" not in st.session_state:
         try:
             st.session_state.current_report = load_synthetic_demo(ROOT)
-
         except (OSError, ValueError) as exc:
             st.error(
-                f"Bundled synthetic demonstration could not load: {exc}"
+                f"Synthetic demonstration failed to load: {exc}"
             )
             return None
 
     return st.session_state.current_report
 
 
-def _metrics(report: dict) -> None:
-    """Display accessible Streamlit metrics with premium CSS cards."""
-
+def _summary_cards(report: dict) -> None:
     summary = report["summary"]
 
-    columns = st.columns(4, gap="medium")
-
-    specifications = (
+    entries = (
         ("Normalized events", "events_analyzed"),
         ("Detection findings", "findings_analyzed"),
         ("Incidents opened", "total_incidents"),
         ("Linked evidence", "unique_evidence_events"),
     )
 
-    for column, (title, field) in zip(columns, specifications):
-        column.metric(
-            title,
-            f"{summary.get(field, 0):,}",
-        )
+    for col, (label, key) in zip(
+        st.columns(4, gap="medium"),
+        entries,
+    ):
+        col.metric(label, str(summary.get(key, 0)))
 
 
 def _panel():
-    """Create a native bordered panel where supported."""
+    return (
+        st.container(border=True)
+        if hasattr(st, "container")
+        else nullcontext()
+    )
 
-    if hasattr(st, "container"):
-        return st.container(border=True)
 
-    return nullcontext()
+def _panel_title(title: str, caption: str = "") -> None:
+    st.markdown(
+        '<div class="prism-panel-label">'
+        '<b>' + _html(title) + '</b>'
+        '<small>' + _html(caption) + '</small>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # -----------------------------------------------------------
-# PROFESSIONAL CHART COMPONENTS
+# CHART STYLING
 # -----------------------------------------------------------
 
-def _chart(
+def _chart_style(chart):
+    light = st.session_state.ui_mode == "light"
+    ink = "#52677F" if light else "#A9BCD0"
+    grid = "#D9E5F0" if light else "#2A3549"
+
+    return (
+        chart.configure_view(strokeOpacity=0)
+        .configure_axis(
+            labelColor=ink,
+            titleColor=ink,
+            gridColor=grid,
+            domain=False,
+            ticks=False,
+        )
+        .configure_legend(
+            labelColor=ink,
+            titleColor=ink,
+        )
+        .configure(background="transparent")
+    )
+
+
+def _bar(
     data: list[dict],
-    index: str,
-    values: str,
-    key: str,
-    color: str = "#56e3c5",
+    dimension: str,
+    measure: str,
+    color: str,
 ) -> None:
-    """Render a polished horizontal categorical chart."""
-
-    if not data:
-        st.info(f"No {key} records in this report.")
-        return
-
     frame = pd.DataFrame(data)
 
-    # Compatibility fallback for lightweight renderer tests.
+    if frame.empty or frame[measure].sum() == 0:
+        st.info("No matching evidence in this investigation.")
+        return
+
     if not hasattr(st, "altair_chart"):
         st.bar_chart(
-            frame.set_index(index)[[values]],
-            height=245,
-            use_container_width=True,
+            frame.set_index(dimension)[[measure]],
+            height=235,
         )
         return
 
@@ -242,70 +239,116 @@ def _chart(
     chart = (
         alt.Chart(frame)
         .mark_bar(
-            cornerRadiusEnd=6,
-            size=21,
+            cornerRadiusEnd=5,
+            size=22,
         )
         .encode(
             x=alt.X(
-                f"{values}:Q",
+                f"{measure}:Q",
                 title=None,
                 axis=alt.Axis(
-                    format="d",
                     tickMinStep=1,
+                    format="d",
                 ),
             ),
             y=alt.Y(
-                f"{index}:N",
+                f"{dimension}:N",
                 title=None,
                 sort="-x",
-                axis=alt.Axis(labelLimit=165),
             ),
             color=alt.value(color),
             tooltip=[
-                alt.Tooltip(
-                    f"{index}:N",
-                    title="Category",
-                ),
-                alt.Tooltip(
-                    f"{values}:Q",
-                    title="Count",
-                ),
+                alt.Tooltip(f"{dimension}:N"),
+                alt.Tooltip(f"{measure}:Q"),
             ],
         )
         .properties(
-            height=max(210, 35 * len(frame)),
-        )
-        .configure_view(
-            strokeOpacity=0,
-        )
-        .configure_axis(
-            domain=False,
-            ticks=False,
-            labelColor="#9db4c6",
-            gridColor="#243549",
-            labelFontSize=11,
-            titleColor="#a9bdcd",
-        )
-        .configure(
-            background="transparent",
+            height=max(205, len(frame) * 38)
         )
     )
 
     st.altair_chart(
-        chart,
-        theme=None,
+        _chart_style(chart),
         use_container_width=True,
+        theme=None,
     )
 
 
-def _activity_chart(rows: list[dict]) -> None:
-    """Render the chronological evidence-activity visualization."""
-
-    if not rows:
-        st.info("No linked evidence timeline is available.")
+def _donut(report: dict) -> None:
+    if not hasattr(st, "altair_chart"):
+        frame = pd.DataFrame(severity_summary(report))
+        st.bar_chart(
+            frame.set_index("severity")[["incidents"]],
+            height=250,
+        )
         return
 
-    frame = pd.DataFrame(rows)
+    import altair as alt
+
+    entries = [
+        row
+        for row in severity_summary(report)
+        if row["incidents"]
+    ]
+
+    if not entries:
+        st.info("No incident severity data.")
+        return
+
+    frame = pd.DataFrame(entries)
+
+    colors = [
+        SEVERITY_COLORS[key]
+        for key in frame["severity"]
+    ]
+
+    chart = (
+        alt.Chart(frame)
+        .mark_arc(
+            innerRadius=67,
+            outerRadius=100,
+            cornerRadius=5,
+            padAngle=0.025,
+        )
+        .encode(
+            theta=alt.Theta(
+                "incidents:Q",
+                stack=True,
+            ),
+            color=alt.Color(
+                "severity:N",
+                scale=alt.Scale(
+                    domain=list(frame["severity"]),
+                    range=colors,
+                ),
+                legend=alt.Legend(
+                    orient="bottom",
+                    title=None,
+                ),
+            ),
+            tooltip=[
+                "severity:N",
+                "incidents:Q",
+            ],
+        )
+        .properties(height=265)
+    )
+
+    st.altair_chart(
+        _chart_style(chart),
+        use_container_width=True,
+        theme=None,
+    )
+
+
+def _timeline_chart(report: dict) -> None:
+    data = timeline_activity(report)
+
+    if not data:
+        st.info("No linked timeline events available.")
+        return
+
+    frame = pd.DataFrame(data)
 
     if not hasattr(st, "altair_chart"):
         wide = frame.pivot_table(
@@ -316,36 +359,41 @@ def _activity_chart(rows: list[dict]) -> None:
             fill_value=0,
         )
 
-        st.line_chart(
-            wide,
-            height=245,
-        )
+        st.line_chart(wide, height=250)
         return
 
     import altair as alt
 
+    # Only display real backend timestamps.
+    frame["minute"] = pd.to_datetime(
+        frame["minute"],
+        utc=True,
+        errors="coerce",
+    )
+
+    frame = frame.dropna(subset=["minute"])
+
+    if frame.empty:
+        st.info("No parseable evidence timestamps.")
+        return
+
     chart = (
         alt.Chart(frame)
-        .mark_area(
-            interpolate="monotone",
-            opacity=0.18,
-            line={"strokeWidth": 2.8},
+        .mark_line(
+            point=True,
+            strokeWidth=2.8,
         )
         .encode(
             x=alt.X(
-                "minute:N",
-                title=None,
-                axis=alt.Axis(
-                    labelAngle=-35,
-                    labelLimit=110,
-                ),
+                "minute:T",
+                title="Event time (UTC)",
             ),
             y=alt.Y(
                 "events:Q",
-                title=None,
+                title="Linked events",
                 axis=alt.Axis(
-                    format="d",
                     tickMinStep=1,
+                    format="d",
                 ),
             ),
             color=alt.Color(
@@ -353,265 +401,199 @@ def _activity_chart(rows: list[dict]) -> None:
                 title=None,
                 scale=alt.Scale(
                     range=[
-                        "#56e3c5",
-                        "#a9a4ff",
-                        "#71bdf4",
-                        "#ffbd75",
+                        "#00D3C1",
+                        "#947AFF",
+                        "#FFAB42",
+                        "#4FA9FF",
                     ],
                 ),
             ),
             tooltip=[
-                alt.Tooltip(
-                    "minute:N",
-                    title="Minute",
-                ),
-                alt.Tooltip(
-                    "stage:N",
-                    title="Event",
-                ),
-                alt.Tooltip(
-                    "events:Q",
-                    title="Count",
-                ),
+                alt.Tooltip("minute:T"),
+                "stage:N",
+                "events:Q",
             ],
         )
-        .properties(
-            height=230,
-        )
-        .configure_view(
-            strokeOpacity=0,
-        )
-        .configure_axis(
-            domain=False,
-            ticks=False,
-            labelColor="#9db4c6",
-            gridColor="#243549",
-        )
-        .configure_legend(
-            labelColor="#adc2d0",
-            orient="bottom",
-        )
-        .configure(
-            background="transparent",
-        )
+        .properties(height=253)
     )
 
     st.altair_chart(
-        chart,
-        theme=None,
+        _chart_style(chart),
         use_container_width=True,
+        theme=None,
     )
 
 
 # -----------------------------------------------------------
-# WORKSPACE 1 — SECURITY COMMAND CENTER
+# WORKSPACE 1 — COMMAND CENTER
 # -----------------------------------------------------------
 
 def overview(report: dict) -> None:
-
-    _hero(
-        "Security Command Center",
-        "Your authentication threat landscape, incidents and evidence "
-        "— in one place.",
+    _header(
+        "Command Center",
+        "An overview of your actual authentication findings, "
+        "linked evidence and priority cases.",
+        "OVERVIEW",
     )
 
     _scope(report)
-    _metrics(report)
+    _summary_cards(report)
 
     _section(
-        "Threat intelligence overview",
-        "SYNTHETIC OR SELECTED INVESTIGATION",
+        "Security analytics",
+        "DETECTION-BASED · NOT LIVE NETWORK TELEMETRY",
     )
 
-    col1, col2 = st.columns(2, gap="large")
+    left, right = st.columns(
+        [1.65, 1],
+        gap="medium",
+    )
 
-    with col1:
+    with left:
         with _panel():
-            st.subheader("◈ Severity distribution")
-
-            _chart(
-                severity_summary(report),
-                "severity",
-                "incidents",
-                "incident",
-                "#ff8f94",
+            _panel_title(
+                "Evidence activity",
+                "Chronological events",
             )
+            _timeline_chart(report)
 
-    with col2:
+    with right:
         with _panel():
-            st.subheader("◎ Detection coverage")
+            _panel_title(
+                "Severity distribution",
+                "All correlated incidents",
+            )
+            _donut(report)
 
-            _chart(
+    left, right = st.columns(
+        2,
+        gap="medium",
+    )
+
+    with left:
+        with _panel():
+            _panel_title(
+                "Detection coverage",
+                "Rule match counts",
+            )
+            _bar(
                 rule_summary(report),
                 "rule",
                 "findings",
-                "finding",
-                "#a9a4ff",
+                "#947AFF",
             )
 
-    col3, col4 = st.columns(2, gap="large")
-
-    with col3:
+    with right:
         with _panel():
-            st.subheader("⌁ Top source addresses")
-
-            _chart(
+            _panel_title(
+                "Source intelligence",
+                "Incident counts per source IP",
+            )
+            _bar(
                 top_sources(report),
                 "source_ip",
                 "incidents",
-                "source",
-                "#56e3c5",
-            )
-
-    with col4:
-        with _panel():
-            st.subheader("▦ Evidence activity")
-
-            _activity_chart(
-                timeline_activity(report),
+                "#00D3C1",
             )
 
     _section(
-        "Priority investigation queue",
-        "TOP THREE · REVIEW IN INCIDENT EXPLORER",
+        "Priority investigations",
+        "HIGHEST SEVERITY FIRST",
     )
 
-    priority = filter_incidents(report)[:3]
+    priority = filter_incidents(report)[:4]
 
-    if priority:
+    if not priority:
+        st.info("No incidents to investigate.")
 
-        rows = []
+    for inc in priority:
+        severity = str(
+            inc.get("severity") or "unknown"
+        ).lower()
 
-        severity_colors = {
-            "critical": "#ff748d",
-            "high": "#ffc77b",
-            "medium": "#71bdf4",
-            "low": "#56e3c5",
-        }
-
-        for item in priority:
-
-            severity = str(
-                item.get("severity", "unknown")
-            ).lower()
-
-            color = severity_colors.get(
-                severity,
-                "#9cafc2",
-            )
-
-            ip = escape(
-                str(item.get("source_ip") or "Unknown IP")
-            )
-
-            host = escape(
-                str(item.get("hostname") or "Unknown host")
-            )
-
-            incident_id = escape(
-                str(item.get("incident_id") or "")
-            )
-
-            platform = escape(
-                str(item.get("platform") or "unknown")
-            ).upper()
-
-            rows.append(
-                '<div class="sentinel-case-row">'
-                '<div class="sentinel-case-info">'
-                '<span class="sentinel-case-dot" '
-                'style="background:' + color + '"></span>'
-
-                '<div>'
-                '<div class="sentinel-case-title">'
-                + ip +
-                '</div>'
-
-                '<div class="sentinel-case-sub">'
-                + host + ' &nbsp;·&nbsp; ' + incident_id +
-                '</div>'
-                '</div>'
-                '</div>'
-
-                '<div class="sentinel-case-meta">'
-                '<span class="sentinel-case-platform">'
-                + platform +
-                '</span>'
-
-                '<span class="sentinel-case-severity" '
-                'style="color:' + color
-                + ';border-color:' + color + '55">'
-                + escape(severity.upper()) +
-                '</span>'
-                '</div>'
-                '</div>'
-            )
+        badge = (
+            severity
+            if severity in SEVERITY_COLORS
+            else "neutral"
+        )
 
         st.markdown(
-            '<div class="sentinel-case-list">'
-            + "".join(rows)
-            + '</div>',
+            '<div class="prism-case">'
+            '<span class="prism-case-stripe prism-b-'
+            + badge
+            + '"></span>'
+
+            '<div class="prism-case-main">'
+            '<div class="prism-case-id">'
+            + _html(inc.get("incident_id", ""))
+            + '</div>'
+
+            '<strong>'
+            + _html(inc.get("source_ip") or "Unknown source")
+            + '</strong>'
+
+            '<small>'
+            + _html(inc.get("hostname") or "Unknown host")
+            + ' · '
+            + _html(inc.get("platform") or "unknown")
+            + '</small></div>'
+
+            '<div class="prism-sev prism-b-'
+            + badge
+            + '">'
+            + _html(severity.upper())
+            + '</div></div>',
             unsafe_allow_html=True,
         )
 
-    else:
-        st.info("No priority investigations in this report.")
-
-    st.markdown(
-        '<div class="sentinel-note">'
-        '◉ &nbsp; Charts reflect '
-        '<strong>linked detection evidence</strong>, '
-        'not complete raw-log history. Authentication success after '
-        'failures is a signal for investigation, '
-        'not confirmation of compromise.'
-        '</div>',
-        unsafe_allow_html=True,
+    st.caption(
+        "Source data is synthetic until you analyze authorized logs. "
+        "Findings are indicators for investigation, "
+        "not confirmation of compromise."
     )
 
 
 # -----------------------------------------------------------
-# WORKSPACE 2 — SECURE LOG INTAKE
+# WORKSPACE 2 — LOG INTAKE
 # -----------------------------------------------------------
 
-def intake(report: dict) -> None:
-
-    _hero(
-        "Secure Log Intake",
-        "Inspect authorized Linux SSH and Windows Security XML logs "
-        "without keeping raw uploads.",
-        "LOCAL ANALYSIS",
+def intake(_: dict) -> None:
+    _header(
+        "Log Intake",
+        "Bring authorized Linux SSH and Windows Security XML "
+        "into a private investigation session.",
+        "INPUT",
     )
 
-    st.warning(
-        "Privacy: upload only logs you're authorized to analyze. "
-        "Raw files are processed in temporary storage, but analysis "
-        "results stay in this browser session until cleared. "
-        "Do not expose this server to a network."
+    st.info(
+        "Privacy: raw uploads are processed in temporary storage "
+        "and deleted from disk after analysis; browser session data "
+        "can remain in memory. Keep this server bound to 127.0.0.1."
     )
 
-    a, b = st.columns(2, gap="large")
+    a, b = st.columns(2, gap="medium")
 
     with a:
         linux = st.file_uploader(
-            "Linux OpenSSH authentication logs",
+            "Linux SSH logs (.log, .txt)",
             type=["log", "txt"],
             accept_multiple_files=True,
-            key=f"linux_upload_{st.session_state.get('upload_epoch', 0)}",
+            key=f"linux_{st.session_state.get('upload_epoch', 0)}",
         )
 
     with b:
         windows = st.file_uploader(
-            "Windows Security Event XML exports",
+            "Windows Security XML (.xml)",
             type=["xml"],
             accept_multiple_files=True,
-            key=f"windows_upload_{st.session_state.get('upload_epoch', 0)}",
+            key=f"windows_{st.session_state.get('upload_epoch', 0)}",
         )
 
     c, d = st.columns(2)
 
     with c:
         year = st.number_input(
-            "Linux log year (explicit)",
+            "Linux log year",
             min_value=1970,
             max_value=9999,
             value=2026,
@@ -620,18 +602,16 @@ def intake(report: dict) -> None:
 
     with d:
         offset = st.text_input(
-            "Linux UTC offset",
+            "Explicit Linux UTC offset",
             value="+08:00",
-            help="For example +08:00 or +00:00. "
-                 "Must reflect the log's timezone.",
         )
 
     files = list(linux or []) + list(windows or [])
 
     st.caption(
-        f"{len(files)} file(s) selected · "
-        "Limit: 4 files, 16 MiB each, 32 MiB combined. "
-        "Binary .evtx is not supported; export to XML first."
+        f"{len(files)} selected · Max 4 files · "
+        "16 MiB per file · 32 MiB combined · "
+        "Binary EVTX not supported"
     )
 
     if st.button(
@@ -640,19 +620,22 @@ def intake(report: dict) -> None:
         disabled=not files,
         use_container_width=True,
     ):
-
         try:
             if (
                 len(files) > 4
-                or any(item.size > MAX_RAW_LOG_BYTES for item in files)
-                or sum(item.size for item in files) > 32 * 1024 * 1024
+                or any(
+                    f.size > MAX_RAW_LOG_BYTES
+                    for f in files
+                )
+                or sum(f.size for f in files)
+                > 32 * 1024 * 1024
             ):
                 raise ValueError(
-                    "Upload count or size limit exceeded "
-                    "(4 files / 16 MiB each / 32 MiB total)"
+                    "Upload limits exceeded "
+                    "(4 files, 16 MiB each, 32 MiB total)"
                 )
 
-            inputs = [
+            sources = [
                 UploadedSource(
                     f.name,
                     "linux",
@@ -661,7 +644,7 @@ def intake(report: dict) -> None:
                 for f in linux or []
             ]
 
-            inputs += [
+            sources += [
                 UploadedSource(
                     f.name,
                     "windows",
@@ -671,7 +654,7 @@ def intake(report: dict) -> None:
             ]
 
             st.session_state.current_report = analyze_uploaded_sources(
-                inputs,
+                sources,
                 detection_rules=DETECTION_PATH,
                 correlation_rules=CORRELATION_PATH,
                 year=int(year),
@@ -685,48 +668,43 @@ def intake(report: dict) -> None:
             )
 
             st.success(
-                "Analysis complete. Open the Command Center "
-                "or Incident Explorer for results."
+                "Analysis complete. Explore the Command Center "
+                "or Incident Explorer."
             )
 
         except (ValueError, OSError, UnicodeError) as exc:
-            st.error(
-                f"Upload rejected or analysis failed: {exc}"
-            )
+            st.error(f"Analysis rejected: {exc}")
 
     st.divider()
 
-    st.subheader("Import an existing investigation JSON")
-
-    st.caption(
-        "Read-only review. Use a report created by the toolkit, "
-        "rather than an unrelated JSON file."
+    _section(
+        "Import existing investigation",
+        "JSON · READ ONLY",
     )
 
     existing = st.file_uploader(
         "Investigation JSON",
         type=["json"],
-        key=f"report_upload_{st.session_state.get('upload_epoch', 0)}",
+        key=f"json_{st.session_state.get('upload_epoch', 0)}",
     )
 
     if st.button(
         "Open investigation JSON",
         disabled=existing is None,
     ):
-
         try:
             if existing.size > 50 * 1024 * 1024:
                 raise ValueError(
-                    "Investigation JSON exceeds the 50 MiB limit"
+                    "Investigation JSON exceeds 50 MiB"
                 )
 
             st.session_state.current_report = load_investigation_json(
                 existing.getvalue()
             )
 
-            st.success("Investigation loaded for review.")
+            st.success("Investigation report loaded.")
 
-        except (ValueError, OSError) as exc:
+        except (OSError, ValueError) as exc:
             st.error(f"Import rejected: {exc}")
 
 
@@ -735,31 +713,30 @@ def intake(report: dict) -> None:
 # -----------------------------------------------------------
 
 def explorer(report: dict) -> None:
-
-    _hero(
+    _header(
         "Incident Explorer",
-        "Filter, investigate and validate evidence relationships "
-        "for each case.",
-        "INVESTIGATION",
+        "Filter by severity, platform, rule and identity; "
+        "follow linked evidence to the source.",
+        "INVESTIGATE",
     )
 
     _scope(report)
 
-    one, two, three, four = st.columns(
-        [1, 1, 1.2, 2]
+    a, b, c, d = st.columns(
+        [1, 1, 1.3, 2]
     )
 
-    severity = one.multiselect(
+    severity = a.multiselect(
         "Severity",
         ["critical", "high", "medium", "low"],
     )
 
-    platform = two.multiselect(
+    platform = b.multiselect(
         "Platform",
         ["linux", "windows"],
     )
 
-    rules = three.multiselect(
+    rules = c.multiselect(
         "Detection rule",
         [
             "brute_force",
@@ -768,8 +745,8 @@ def explorer(report: dict) -> None:
         ],
     )
 
-    search = four.text_input(
-        "Search IP, host, account or incident ID"
+    query = d.text_input(
+        "Search IP, host, account or ID"
     )
 
     incidents = filter_incidents(
@@ -777,36 +754,33 @@ def explorer(report: dict) -> None:
         severity=severity,
         platform=platform,
         rule=rules,
-        query=search,
+        query=query,
     )
 
-    st.write(
-        f"**{len(incidents)} incident(s) match your filters**"
+    _section(
+        f"{len(incidents)} matching incidents",
+        "FILTERED INVESTIGATION QUEUE",
     )
 
-    table = build_report_tables(report)["incidents.csv"]
-
-    keys = {
+    allowed = {
         item["incident_id"]
         for item in incidents
     }
 
-    filtered = [
-        entry
-        for entry in table
-        if entry["incident_id"] in keys
+    table = [
+        row
+        for row in build_report_tables(report)["incidents.csv"]
+        if row["incident_id"] in allowed
     ]
 
     st.dataframe(
-        pd.DataFrame(filtered),
-        use_container_width=True,
+        pd.DataFrame(table),
         hide_index=True,
+        use_container_width=True,
     )
 
     if not incidents:
-        st.info(
-            "No matching incidents. Try adjusting the filters."
-        )
+        st.info("No cases match these filters.")
         return
 
     ids = [
@@ -819,10 +793,10 @@ def explorer(report: dict) -> None:
         ids,
         format_func=lambda k: next(
             (
-                f"{i.get('severity', 'unknown').upper()} "
-                f"· {i.get('source_ip', '?')} · {k}"
-                for i in incidents
-                if i["incident_id"] == k
+                f"{item.get('severity', '?').upper()}"
+                f" · {item.get('source_ip', '?')} · {k}"
+                for item in incidents
+                if item["incident_id"] == k
             ),
             k,
         ),
@@ -833,58 +807,53 @@ def explorer(report: dict) -> None:
         chosen,
     )
 
-    left, right = st.columns(
-        [1, 1],
-        gap="large",
+    a, b = st.columns(2, gap="medium")
+
+    with a:
+        with _panel():
+            st.subheader("Case profile")
+
+            st.json({
+                key: item.get(key)
+                for key in (
+                    "incident_id",
+                    "classification",
+                    "severity",
+                    "source_ip",
+                    "platform",
+                    "hostname",
+                    "first_seen",
+                    "last_seen",
+                    "rule_ids",
+                    "affected_accounts",
+                )
+            })
+
+    with b:
+        with _panel():
+            st.subheader("Analyst observation")
+
+            timeline = item.get("timeline") or {}
+
+            st.info(
+                timeline.get("analyst_summary")
+                or "No narrative for this incident."
+            )
+
+            for check in timeline.get(
+                "recommended_checks", []
+            ):
+                st.write("• " + str(check))
+
+    _section(
+        "Linked evidence",
+        "EXACT SOURCE REFERENCES",
     )
 
-    with left:
-        st.subheader("Case details")
-
-        st.write({
-            key: item.get(key)
-            for key in (
-                "incident_id",
-                "classification",
-                "severity",
-                "source_ip",
-                "platform",
-                "hostname",
-                "first_seen",
-                "last_seen",
-                "rule_ids",
-                "affected_accounts",
-            )
-        })
-
-    with right:
-        st.subheader("Analyst observation")
-
-        timeline = item.get("timeline") or {}
-
-        st.info(
-            timeline.get("analyst_summary")
-            or "No analyst narrative is available for this case."
-        )
-
-        st.caption(
-            "These are observed authentication events; "
-            "conclusions require independent investigation."
-        )
-
-        st.markdown(
-            "**Recommended follow-up checks**"
-        )
-
-        for check in timeline.get("recommended_checks", []):
-            st.write("• " + str(check))
-
-    st.subheader("Linked evidence")
-
     evidence = [
-        entry
-        for entry in build_report_tables(report)["evidence.csv"]
-        if entry["incident_id"] == chosen
+        row
+        for row in build_report_tables(report)["evidence.csv"]
+        if row["incident_id"] == chosen
     ]
 
     st.dataframe(
@@ -899,11 +868,11 @@ def explorer(report: dict) -> None:
 # -----------------------------------------------------------
 
 def timelines(report: dict) -> None:
-
-    _hero(
+    _header(
         "Evidence Timeline",
-        "Reconstruct the sequence of linked authentication evidence.",
-        "FORENSIC CONTEXT",
+        "Inspect the actual chronological authentication evidence "
+        "associated with an incident.",
+        "FORENSIC VIEW",
     )
 
     incidents = report["incidents"]
@@ -918,28 +887,27 @@ def timelines(report: dict) -> None:
         for item in incidents
     }
 
-    key = st.selectbox(
-        "Choose investigation",
+    selected = st.selectbox(
+        "Investigation",
         list(options),
     )
 
-    incident = incident_detail(
+    item = incident_detail(
         report,
-        options[key],
+        options[selected],
     )
 
-    timeline = incident.get("timeline") or {}
+    timeline = item.get("timeline") or {}
 
     st.caption(
         timeline.get("analyst_summary")
-        or "Linked evidence only; "
-           "not the complete security log history."
+        or "Linked detection evidence, not complete log history."
     )
 
     rows = [
         row
         for row in build_report_tables(report)["timelines.csv"]
-        if row["incident_id"] == incident["incident_id"]
+        if row["incident_id"] == item["incident_id"]
     ]
 
     if rows:
@@ -949,39 +917,36 @@ def timelines(report: dict) -> None:
             use_container_width=True,
         )
 
-        count = {}
-
-        for entry in rows:
-            stage = entry.get("stage") or "unknown"
-            count[stage] = count.get(stage, 0) + 1
-
-        _chart(
-            [
-                {
-                    "stage": k,
-                    "linked_events": v,
-                }
-                for k, v in count.items()
-            ],
-            "stage",
-            "linked_events",
-            "timeline",
+        stages = Counter(
+            row.get("stage") or "unknown"
+            for row in rows
         )
+
+        with _panel():
+            _panel_title("Investigation stages")
+
+            _bar(
+                [
+                    {"stage": key, "events": count}
+                    for key, count in stages.items()
+                ],
+                "stage",
+                "events",
+                "#947AFF",
+            )
 
     else:
         st.info(
-            "The selected report contains no linked timeline "
-            "events for this case."
+            "No linked timeline entries for this incident."
         )
 
     with st.expander(
-        "Show underlying evidence IDs and source provenance"
+        "Evidence IDs and original source provenance"
     ):
-
         evidence = [
-            entry
-            for entry in build_report_tables(report)["evidence.csv"]
-            if entry["incident_id"] == incident["incident_id"]
+            row
+            for row in build_report_tables(report)["evidence.csv"]
+            if row["incident_id"] == item["incident_id"]
         ]
 
         st.dataframe(
@@ -992,16 +957,15 @@ def timelines(report: dict) -> None:
 
 
 # -----------------------------------------------------------
-# WORKSPACE 5 — DETECTION CONFIGURATION
+# WORKSPACE 5 — DETECTION LAB
 # -----------------------------------------------------------
 
-def detection_lab(report: dict) -> None:
-
-    _hero(
-        "Detection Configuration",
-        "Tune session-only thresholds while preserving "
-        "your committed YAML rules.",
-        "CONTROL PLANE",
+def detection_lab(_: dict) -> None:
+    _header(
+        "Detection Lab",
+        "Adjust rule thresholds in this session without "
+        "modifying your project's YAML files.",
+        "CONFIGURATION",
     )
 
     try:
@@ -1009,15 +973,12 @@ def detection_lab(report: dict) -> None:
             DETECTION_PATH,
             CORRELATION_PATH,
         )
-
     except (OSError, ValueError) as exc:
-        st.error(
-            f"Configuration validation failed: {exc}"
-        )
+        st.error(f"Configuration invalid: {exc}")
         return
 
     st.success(
-        "Original detection and correlation YAML: VALID"
+        "Committed detection and correlation configurations are valid."
     )
 
     stored = st.session_state.get(
@@ -1025,7 +986,7 @@ def detection_lab(report: dict) -> None:
         {},
     )
 
-    config_epoch = st.session_state.get(
+    epoch = st.session_state.get(
         "config_epoch",
         0,
     )
@@ -1039,7 +1000,6 @@ def detection_lab(report: dict) -> None:
     }
 
     for rule_id, label in labels.items():
-
         original = snapshot["detection_rules"][rule_id]
 
         current = {
@@ -1049,50 +1009,47 @@ def detection_lab(report: dict) -> None:
 
         with st.expander(
             label,
-            expanded=(rule_id == "brute_force"),
+            expanded=rule_id == "brute_force",
         ):
+            a, b, c, d = st.columns(4)
 
-            ca, cb, cc, cd = st.columns(
-                [1, 1, 1, 1]
-            )
-
-            enabled = ca.checkbox(
+            enabled = a.checkbox(
                 "Enabled",
                 value=current["enabled"],
-                key=f"enable_{rule_id}_{config_epoch}",
+                key=f"enable_{rule_id}_{epoch}",
             )
 
-            options = [
+            choices = [
                 "low",
                 "medium",
                 "high",
                 "critical",
             ]
 
-            severity = cb.selectbox(
+            severity = b.selectbox(
                 "Severity",
-                options,
-                index=options.index(current["severity"]),
-                key=f"sev_{rule_id}_{config_epoch}",
+                choices,
+                index=choices.index(current["severity"]),
+                key=f"sev_{rule_id}_{epoch}",
             )
 
             minutes = int(
-                cc.number_input(
+                c.number_input(
                     "Window (minutes)",
                     min_value=1,
                     max_value=1440,
                     value=current["window_minutes"],
-                    key=f"win_{rule_id}_{config_epoch}",
+                    key=f"win_{rule_id}_{epoch}",
                 )
             )
 
-            failures = int(
-                cd.number_input(
+            minimum = int(
+                d.number_input(
                     "Minimum failures",
                     min_value=1,
                     max_value=1440,
                     value=current["min_failures"],
-                    key=f"fail_{rule_id}_{config_epoch}",
+                    key=f"fail_{rule_id}_{epoch}",
                 )
             )
 
@@ -1100,66 +1057,64 @@ def detection_lab(report: dict) -> None:
                 enabled=enabled,
                 severity=severity,
                 window_minutes=minutes,
-                min_failures=failures,
+                min_failures=minimum,
             )
 
             if rule_id == "password_spray":
-
                 proposed[rule_id]["min_distinct_accounts"] = int(
                     st.number_input(
                         "Distinct accounts",
                         min_value=1,
                         max_value=1440,
                         value=current["min_distinct_accounts"],
-                        key=f"spray_accounts_{config_epoch}",
+                        key=f"accounts_{epoch}",
                     )
                 )
 
-    orig_corr = snapshot["correlation"]
+    original_correlation = snapshot["correlation"]
 
-    corr_saved = st.session_state.get(
+    saved = st.session_state.get(
         "correlation_overrides",
         {},
     )
 
-    c1, c2 = st.columns(2)
+    a, b = st.columns(2)
 
     gap = int(
-        c1.number_input(
+        a.number_input(
             "Maximum inactivity gap (minutes)",
             min_value=1,
             max_value=1440,
-            value=corr_saved.get(
+            value=saved.get(
                 "max_gap_minutes",
-                orig_corr["max_gap_minutes"],
+                original_correlation["max_gap_minutes"],
             ),
-            key=f"corr_gap_{config_epoch}",
+            key=f"gap_{epoch}",
         )
     )
 
     span = int(
-        c2.number_input(
+        b.number_input(
             "Maximum incident span (minutes)",
             min_value=1,
             max_value=1440,
-            value=corr_saved.get(
+            value=saved.get(
                 "max_incident_minutes",
-                orig_corr["max_incident_minutes"],
+                original_correlation["max_incident_minutes"],
             ),
-            key=f"corr_span_{config_epoch}",
+            key=f"span_{epoch}",
         )
     )
 
-    correlation = dict(
-        max_gap_minutes=gap,
-        max_incident_minutes=span,
-    )
+    correlation = {
+        "max_gap_minutes": gap,
+        "max_incident_minutes": span,
+    }
 
     if st.button(
-        "Apply thresholds for this browser session",
+        "Apply session thresholds",
         type="primary",
     ):
-
         try:
             build_rule_yaml(
                 DETECTION_PATH,
@@ -1175,56 +1130,39 @@ def detection_lab(report: dict) -> None:
             st.session_state.correlation_overrides = correlation
 
             st.success(
-                "Session settings applied. Re-run analysis "
-                "from Log Intake or reload the synthetic demo "
-                "using these settings."
+                "Overrides applied to new analyses only. "
+                "Existing reports are unchanged."
             )
 
         except (OSError, ValueError) as exc:
-            st.error(
-                f"Configuration rejected: {exc}"
-            )
+            st.error(f"Rule update rejected: {exc}")
 
-    used = st.session_state.get(
-        "detection_overrides"
-    )
-
-    if used:
+    if st.session_state.get("detection_overrides"):
         st.info(
-            "Customized rules are ACTIVE for new analyses only. "
-            "Existing incident results are not recomputed automatically."
+            "Custom session rules active. "
+            "Reanalyze logs to see their effect."
         )
 
-    st.caption(
-        "These controls never overwrite config/detection_rules.yaml "
-        "or config/correlation_rules.yaml. Download YAML for "
-        "manual review if needed."
-    )
+    a, b = st.columns(2)
 
     try:
-        detection_bytes = build_rule_yaml(
-            DETECTION_PATH,
-            st.session_state.get("detection_overrides"),
-        )
-
-        correlation_bytes = build_correlation_yaml(
-            CORRELATION_PATH,
-            st.session_state.get("correlation_overrides"),
-        )
-
-        d1, d2 = st.columns(2)
-
-        d1.download_button(
+        a.download_button(
             "Download detection YAML",
-            detection_bytes,
+            build_rule_yaml(
+                DETECTION_PATH,
+                st.session_state.get("detection_overrides"),
+            ),
             file_name="detection_rules.yaml",
             mime="application/x-yaml",
             use_container_width=True,
         )
 
-        d2.download_button(
+        b.download_button(
             "Download correlation YAML",
-            correlation_bytes,
+            build_correlation_yaml(
+                CORRELATION_PATH,
+                st.session_state.get("correlation_overrides"),
+            ),
             file_name="correlation_rules.yaml",
             mime="application/x-yaml",
             use_container_width=True,
@@ -1233,29 +1171,24 @@ def detection_lab(report: dict) -> None:
     except (ValueError, OSError) as exc:
         st.error(str(exc))
 
-    if st.button(
-        "Reset session rule settings to committed defaults"
-    ):
-
+    if st.button("Reset session rules to defaults"):
         st.session_state.pop(
             "detection_overrides",
             None,
         )
-
         st.session_state.pop(
             "correlation_overrides",
             None,
         )
 
-        st.session_state.config_epoch = config_epoch + 1
+        st.session_state.config_epoch = epoch + 1
         st.rerun()
 
     if st.button(
-        "Re-run bundled synthetic demo with ACTIVE settings"
+        "Re-run bundled synthetic demo with active settings"
     ):
-
         try:
-            files = [
+            sources = [
                 UploadedSource(
                     "attack_auth.log",
                     "linux",
@@ -1263,7 +1196,6 @@ def detection_lab(report: dict) -> None:
                         ROOT / "samples/linux/attack_auth.log"
                     ).read_bytes(),
                 ),
-
                 UploadedSource(
                     "attack_security.xml",
                     "windows",
@@ -1273,8 +1205,8 @@ def detection_lab(report: dict) -> None:
                 ),
             ]
 
-            report = analyze_uploaded_sources(
-                files,
+            result = analyze_uploaded_sources(
+                sources,
                 detection_rules=DETECTION_PATH,
                 correlation_rules=CORRELATION_PATH,
                 year=2026,
@@ -1287,21 +1219,19 @@ def detection_lab(report: dict) -> None:
                 ),
             )
 
-            report["dashboard_input_type"] = (
+            result["dashboard_input_type"] = (
                 "bundled_synthetic_demo"
             )
 
-            st.session_state.current_report = report
+            st.session_state.current_report = result
 
             st.success(
-                f"Demo reanalyzed: "
-                f"{report['summary']['total_incidents']} incidents."
+                "Demo reanalyzed: "
+                f"{result['summary']['total_incidents']} incidents."
             )
 
-        except (OSError, ValueError) as exc:
-            st.error(
-                f"Reanalysis failed: {exc}"
-            )
+        except (ValueError, OSError) as exc:
+            st.error(f"Reanalysis failed: {exc}")
 
 
 # -----------------------------------------------------------
@@ -1309,25 +1239,22 @@ def detection_lab(report: dict) -> None:
 # -----------------------------------------------------------
 
 def validation_lab() -> None:
-
-    _hero(
+    _header(
         "Validation & Performance",
-        "Measure rule-label agreement on fixed synthetic scenarios "
-        "and bounded local throughput.",
-        "QUALITY LAB",
+        "Transparent synthetic metrics and repeatable "
+        "in-memory benchmarks.",
+        "QUALITY",
     )
 
     st.warning(
-        "Synthetic scenario precision/recall does NOT measure "
-        "real-world intrusion detection accuracy. Benchmarks are "
-        "in-memory only and exclude disk I/O and the UI."
+        "Synthetic test precision/recall is not real-world accuracy. "
+        "Benchmark excludes raw parsing, disk and UI rendering."
     )
 
     if st.button(
         "Run labeled synthetic validation",
         type="primary",
     ):
-
         try:
             st.session_state.validation_report = evaluate_scenarios(
                 ROOT / "samples/validation/ground_truth.json",
@@ -1335,35 +1262,26 @@ def validation_lab() -> None:
                 detection_rules=DETECTION_PATH,
             )
 
-        except (OSError, ValueError) as exc:
+        except (ValueError, OSError) as exc:
             st.error(str(exc))
 
     if "validation_report" in st.session_state:
-
         result = st.session_state.validation_report
         summary = result["summary"]
 
-        a, b, c, d = st.columns(4)
-
-        a.metric(
-            "Precision",
-            str(summary.get("precision")),
-        )
-
-        b.metric(
-            "Recall",
-            str(summary.get("recall")),
-        )
-
-        c.metric(
-            "F1",
-            str(summary.get("f1_score")),
-        )
-
-        d.metric(
-            "Scenarios",
-            summary["scenarios"],
-        )
+        for col, (label, key) in zip(
+            st.columns(4),
+            (
+                ("Precision", "precision"),
+                ("Recall", "recall"),
+                ("F1", "f1_score"),
+                ("Scenarios", "scenarios"),
+            ),
+        ):
+            col.metric(
+                label,
+                str(summary.get(key)),
+            )
 
         st.dataframe(
             pd.DataFrame(result["scenarios"])[
@@ -1379,20 +1297,19 @@ def validation_lab() -> None:
             use_container_width=True,
         )
 
-        st.caption(
-            result["limitations"]
-        )
+        st.caption(result["limitations"])
 
     st.divider()
 
-    st.subheader(
-        "Synthetic throughput benchmark"
+    _section(
+        "Synthetic throughput",
+        "BOUNDED · IN-MEMORY",
     )
 
-    left, right = st.columns(2)
+    a, b = st.columns(2)
 
     count = int(
-        left.number_input(
+        a.number_input(
             "Generated events",
             min_value=100,
             max_value=5000,
@@ -1402,8 +1319,8 @@ def validation_lab() -> None:
     )
 
     runs = int(
-        right.number_input(
-            "Repetitions",
+        b.number_input(
+            "Runs",
             min_value=2,
             max_value=10,
             value=3,
@@ -1411,7 +1328,6 @@ def validation_lab() -> None:
     )
 
     if st.button("Run benchmark"):
-
         try:
             st.session_state.benchmark_report = run_benchmark(
                 event_count=count,
@@ -1424,42 +1340,38 @@ def validation_lab() -> None:
             st.error(str(exc))
 
     if "benchmark_report" in st.session_state:
-
         result = st.session_state.benchmark_report
 
         a, b, c = st.columns(3)
 
         a.metric(
-            "Median processing",
+            "Median latency",
             f"{result['median_ms']:.1f} ms",
         )
 
         b.metric(
-            "P95 processing",
+            "P95 latency",
             f"{result['p95_ms']:.1f} ms",
         )
 
         c.metric(
-            "Median events/s",
+            "Median events/sec",
             f"{result['median_events_per_second']:,.0f}",
         )
 
-        st.caption(
-            result["limitations"]
-        )
+        st.caption(result["limitations"])
 
 
 # -----------------------------------------------------------
-# WORKSPACE 7 — PROFESSIONAL REPORT CENTER
+# WORKSPACE 7 — REPORT CENTER
 # -----------------------------------------------------------
 
 def reports(report: dict) -> None:
-
-    _hero(
+    _header(
         "Report Center",
-        "Export investigation evidence with validated schemas "
-        "and SHA-256 manifests.",
-        "REPORTING",
+        "Export structured investigations without sending "
+        "any data to external services.",
+        "EXPORT",
     )
 
     _scope(report)
@@ -1474,39 +1386,38 @@ def reports(report: dict) -> None:
         bundle = build_dashboard_zip(report)
 
     except (ValueError, OSError) as exc:
-        st.error(
-            f"Export validation failed: {exc}"
-        )
+        st.error(f"Report validation failed: {exc}")
         return
 
-    a, b = st.columns([1, 1])
+    a, b = st.columns(2)
 
     a.download_button(
-        "Download all 7 files (ZIP)",
+        "Download complete ZIP (7 files)",
         data=bundle,
-        file_name="security_investigation_exports.zip",
+        file_name="sentinel_investigation_bundle.zip",
         mime="application/zip",
         type="primary",
         use_container_width=True,
     )
 
     b.download_button(
-        "Download full JSON",
+        "Download investigation JSON",
         data=downloads["investigation.json"],
         file_name="investigation.json",
         mime="application/json",
         use_container_width=True,
     )
 
-    st.subheader("Individual exports")
+    _section(
+        "Individual evidence exports",
+        "CSV / JSON",
+    )
 
-    for name, contents in sorted(downloads.items()):
-
+    for name, payload in sorted(downloads.items()):
         if name != "investigation.json":
-
             st.download_button(
-                f"↓ {name}",
-                data=contents,
+                "↓ " + name,
+                data=payload,
                 file_name=name,
                 mime=(
                     "text/csv"
@@ -1517,74 +1428,80 @@ def reports(report: dict) -> None:
             )
 
     st.caption(
-        "Each generated export is in memory. SHA-256 hashes "
-        "detect changes against the supplied manifest; "
-        "they do not prove authorship."
+        "Exports are generated in memory; "
+        "manifests verify file integrity, not authorship."
     )
 
 
 # -----------------------------------------------------------
-# BRANDED NAVIGATION SIDEBAR
+# SIDEBAR AND ONE-CLICK THEME SWITCH
 # -----------------------------------------------------------
 
 def sidebar() -> str:
-
-    icons = {
-        "Command center": "◫",
-        "Log intake": "⇧",
-        "Incident explorer": "◇",
-        "Evidence timeline": "≋",
-        "Detection lab": "⚙",
-        "Validation & performance": "◉",
-        "Report center": "⇩",
-    }
-
     with st.sidebar:
-
         st.markdown(
-            '<div class="sentinel-brand-bar">'
-            '<div class="sentinel-brand-icon">◈</div>'
+            '<div class="prism-brand">'
+            '<div class="prism-logo">◈</div>'
             '<div>'
-            '<div class="sentinel-brand-name">'
-            'Sentinel'
+            '<strong>SENTINEL'
+            '<span class="prism-brand-dot">.</span>'
+            '</strong>'
+            '<small>PRISM SECURITY CONSOLE</small>'
             '</div>'
-            '<div class="sentinel-brand-caption">'
-            'SECURITY OPERATIONS'
-            '</div>'
-            '</div>'
-            '</div>'
-
-            '<div class="sentinel-side-status">'
-            '<span class="sentinel-online">'
-            '<i class="sentinel-dot"></i>'
-            ' LOCAL ENGINE ONLINE'
-            '</span>'
-            '<span>v' + __version__ + '</span>'
             '</div>',
             unsafe_allow_html=True,
         )
 
         st.markdown(
-            '<div class="sentinel-nav-label">'
-            'WORKSPACE NAVIGATION'
+            '<div class="prism-sidebar-caption">'
+            'SECURITY WORKSPACE'
             '</div>',
             unsafe_allow_html=True,
         )
 
         selection = st.radio(
-            "WORKSPACE",
-            list(icons),
+            "Workspace",
+            PAGES,
             format_func=lambda name: (
-                f"{icons[name]}    {name.title()}"
+                PAGE_ICONS[PAGES.index(name)]
+                + "    "
+                + name
             ),
             label_visibility="collapsed",
-            key="navigation",
+            key="workspace_nav",
         )
 
-        st.divider()
+        st.markdown(
+            '<div class="prism-sidebar-caption">'
+            'APPEARANCE'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        button_label = (
+            "☀  Switch to light mode"
+            if st.session_state.ui_mode == "dark"
+            else "☾  Switch to dark mode"
+        )
+
+        if st.button(
+            button_label,
+            key="one_click_theme",
+            use_container_width=True,
+        ):
+            st.session_state.ui_mode = (
+                "light"
+                if st.session_state.ui_mode == "dark"
+                else "dark"
+            )
+            st.rerun()
+
+        st.caption(
+            "Appearance is saved for this browser session."
+        )
 
         st.markdown(
-            '<div class="sentinel-nav-label">'
+            '<div class="prism-sidebar-caption">'
             'SESSION CONTROLS'
             '</div>',
             unsafe_allow_html=True,
@@ -1594,31 +1511,18 @@ def sidebar() -> str:
             "↻  Reload synthetic demo",
             use_container_width=True,
         ):
-
             try:
                 st.session_state.current_report = load_synthetic_demo(
                     ROOT
                 )
 
-                st.session_state.pop(
+                for key in (
                     "validation_report",
-                    None,
-                )
-
-                st.session_state.pop(
                     "benchmark_report",
-                    None,
-                )
-
-                st.session_state.pop(
                     "detection_overrides",
-                    None,
-                )
-
-                st.session_state.pop(
                     "correlation_overrides",
-                    None,
-                )
+                ):
+                    st.session_state.pop(key, None)
 
                 st.session_state.config_epoch = (
                     st.session_state.get(
@@ -1629,17 +1533,16 @@ def sidebar() -> str:
                 )
 
                 st.success(
-                    "Synthetic demo loaded with committed configurations."
+                    "Demo restored with committed settings."
                 )
 
-            except (OSError, ValueError) as exc:
+            except (ValueError, OSError) as exc:
                 st.error(str(exc))
 
         if st.button(
             "✕  Clear investigation session",
             use_container_width=True,
         ):
-
             st.session_state.current_report = None
 
             for key in (
@@ -1648,28 +1551,29 @@ def sidebar() -> str:
                 "detection_overrides",
                 "correlation_overrides",
             ):
-                st.session_state.pop(
-                    key,
-                    None,
-                )
+                st.session_state.pop(key, None)
 
             st.session_state.upload_epoch = (
-                st.session_state.get("upload_epoch", 0) + 1
+                st.session_state.get("upload_epoch", 0)
+                + 1
             )
 
             st.rerun()
 
         st.markdown(
-            '<div class="sentinel-side-foot">'
-            '<strong>PRIVATE BY DESIGN</strong><br>'
-            '127.0.0.1 · No remote API<br>'
-            'No automatic publishing<br>'
-            'CLI operates independently'
-            '</div>',
+            '<div class="prism-side-foot">'
+            '<span class="prism-live-dot"></span>'
+            '<strong>LOCAL ENGINE READY</strong>'
+            '<small>'
+            '127.0.0.1 · No cloud sync'
+            '<br>'
+            'CLI independent · v'
+            + _html(__version__)
+            + '</small></div>',
             unsafe_allow_html=True,
         )
 
-        return selection
+    return selection
 
 
 # -----------------------------------------------------------
@@ -1677,47 +1581,40 @@ def sidebar() -> str:
 # -----------------------------------------------------------
 
 def main() -> None:
-
     page = sidebar()
-    report = _current_report()
+    report = _report()
 
-    if page == "Log intake":
+    if page == "Log Intake":
         intake(report or {})
 
-    elif page == "Validation & performance":
+    elif page == "Validation & Performance":
         validation_lab()
 
-    elif page == "Detection lab":
+    elif page == "Detection Lab":
         detection_lab(report or {})
 
     elif report is None:
         st.warning(
-            "Load the bundled synthetic demo from the sidebar "
-            "or import a report."
+            "Use Log Intake to import authorized logs, "
+            "or reload the bundled demo from the sidebar."
         )
 
-    elif page == "Command center":
+    elif page.casefold() == "command center":
         overview(report)
 
-    elif page == "Incident explorer":
+    elif page == "Incident Explorer":
         explorer(report)
 
-    elif page == "Evidence timeline":
+    elif page == "Evidence Timeline":
         timelines(report)
 
     else:
         reports(report)
 
     st.markdown(
-        '<div class="sentinel-footer">'
-        '<span>'
-        '◈ &nbsp; SENTINEL / SECURITY LOG TOOLKIT'
-        '</span>'
-        '<span>'
-        '<strong>LOCAL ONLY</strong> '
-        '· Investigation workspace · v'
-        + __version__ +
-        '</span>'
+        '<div class="prism-footer">'
+        'SENTINEL PRISM'
+        '<span>PRIVATE · LOCAL · EVIDENCE FIRST</span>'
         '</div>',
         unsafe_allow_html=True,
     )
