@@ -1,218 +1,289 @@
-# Python Security Automation & Log Correlation Toolkit
 
-**Offline-first security log analysis and incident investigation, built with Python.**
+<div align="center">
 
-A cybersecurity portfolio project that turns Linux OpenSSH and Windows Security
-XML authentication events into reproducible **detections, correlated incidents,
-evidence-linked timelines and analyst-ready CSV/JSON reports**. Developed using
-free tools with no API key, cloud service, database server or subscription.
+# 🛡️ SENTINEL
 
-**Current milestone: Phase 10 — Local Web Dashboard** · **Version: 1.0.0** ·
-**Dashboard code implemented; Windows browser acceptance still pending.**
+### Security Automation & Log Correlation Toolkit
 
-> **Reproducible demo data is synthetic.** A login-success alert does not prove
-> compromise. The synthetic detection labels and benchmarks are not production
-> detection-accuracy or SIEM-scale performance claims.
+**A local-first cybersecurity investigation platform built with Python and Streamlit.**
 
-## Why build this?
+Analyze authentication logs. Detect suspicious behavior. Correlate incidents. Investigate linked evidence.
 
-SOC investigations often combine evidence from different host log formats.
-Instead of simply counting failed logins, this toolkit normalizes the evidence,
-detects authentication patterns with configurable rules, links findings to
-incidents, reconstructs linked-evidence timelines, and exports traceable results.
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Completed-00A995?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-8B5CF6?style=flat-square)
+![Deployment](https://img.shields.io/badge/Deployment-Local--only-475569?style=flat-square)
 
-## Features at a glance
+[Explore Features](#-key-features) · [Quick Start](#-quick-start) · [Architecture](#-system-architecture) · [Project Documentation](#-documentation)
 
-| Area | Implemented capability |
+</div>
+
+---
+
+## 📸 Dashboard Preview
+
+Sentinel features a seven-workspace investigation dashboard with dark and light appearance modes, configurable threat detection, interactive charts and evidence-linked investigations.
+
+<div align="center">
+
+<img src="docs/screenshots/sentinel-dark.png" width="49%" alt="Sentinel Command Center in dark mode"/>
+<img src="docs/screenshots/sentinel-light.png" width="49%" alt="Sentinel Command Center in light mode"/>
+
+**Command Center — Dark and Light Modes**
+
+<img src="docs/screenshots/incident-explorer.png" width="90%" alt="Sentinel Incident Explorer with security investigation controls"/>
+
+**Incident Explorer — Authentication Threat Investigation**
+
+</div>
+
+> Screenshots are captured from the actual locally running application using bundled synthetic demonstration data.
+
+## 🎯 Project Overview
+
+Sentinel is a Python-based security automation and investigation toolkit designed to demonstrate practical security operations center (SOC) workflows.
+
+It processes Linux OpenSSH authentication logs and Windows Security XML event exports, normalizes events into a consistent format, and applies configurable detection rules to identify suspicious authentication patterns.
+
+Related findings are grouped into incidents with traceable evidence and chronological timelines. Investigations can be explored through either the command-line interface or the local Streamlit dashboard.
+
+### What problem does it solve?
+
+Authentication evidence is often scattered across different operating systems, log formats and timestamps. Manual analysis makes it harder to connect repeated failures, suspicious account activity and subsequent successful logins.
+
+Sentinel provides a repeatable workflow from raw authentication logs to evidence-linked investigation reports.
+
+## ✨ Key Features
+
+| Capability | Implementation |
 |---|---|
-| Parsing | Linux `sshd` syslog; Windows Security XML Event IDs 4624/4625 |
-| Normalization | UTC timestamps, host/account/IP attributes and source references |
-| Detections | Brute force, password spray, and success after failures (YAML rules) |
-| Correlation | Stable IDs, host/IP/platform separation, bounded time windows |
-| Investigation | Chronological linked evidence with conservative analyst summaries |
-| Reporting | Five linked CSV tables, JSON investigation report, SHA-256 manifest |
-| CLI | `parse`, `detect`, `correlate`, `timeline`, `analyze`, `report`, `export`, `config`, `doctor` |
-| Security | Input size limits, XML entity/DTD rejection, configuration validation, output safeguards |
-| Quality | Adversarial tests, labeled synthetic detection scenarios, bounded benchmarks |
-| Portfolio | Repeatable offline demo, publication preflight and editable Mermaid architecture diagrams |
-| Local dashboard | **Sentinel** Streamlit command center, uploads, charts, incidents, timelines, rule controls, validation, downloads |
+| Cross-platform log analysis | Linux SSH/syslog and Windows Security XML |
+| Event normalization | UTC timestamps, source IP, host, account and event references |
+| Threat detection | Brute-force patterns, password spraying and success after failures |
+| Incident correlation | Groups related findings using validated host, platform, IP and time boundaries |
+| Evidence timelines | Chronological, traceable investigation evidence |
+| Interactive SOC dashboard | Seven Streamlit workspaces with charts, filters and search |
+| Appearance modes | Switch between Prism dark and light themes |
+| Detection configuration | Session-based tuning of detection and correlation parameters |
+| Investigation exports | Five CSV tables, complete JSON report and SHA-256 manifest |
+| Defensive validation | Input limits, XML declaration safeguards and configuration checks |
+| Testing | Pytest regression suite and synthetic security scenarios |
 
-## Architecture
+## 🖥️ Seven Dashboard Workspaces
+
+| Workspace | Purpose |
+|---|---|
+| Command Center | Summarizes events, findings, incidents and evidence |
+| Log Intake | Validates and analyzes supported authentication log uploads |
+| Incident Explorer | Filters incidents and inspects evidence relationships |
+| Evidence Timeline | Presents linked authentication events chronologically |
+| Detection Lab | Adjusts detection thresholds for the current browser session |
+| Validation & Performance | Runs synthetic detection validation and bounded benchmarks |
+| Report Center | Exports structured investigation data and integrity manifests |
+
+All seven workspaces use the same underlying Python analysis services as the CLI.
+
+## 🏗️ System Architecture
 
 ```mermaid
-flowchart LR
-    A[Linux SSH and Windows Security XML] --> B[Parse and normalize]
-    B --> C[Rule detection]
-    C --> D[Incident correlation]
-    D --> E[Evidence-linked timelines]
-    E --> F[Validated report/export service]
-    F --> G[CLI]
-    F --> H[Local Streamlit dashboard - implemented]
-    Y[YAML configuration] --> C
-    Y --> D
+flowchart TD
+    A["Linux SSH Logs"] --> C["Parsing & Normalization"]
+    B["Windows Security XML"] --> C
+    C --> D["Normalized Authentication Events"]
+    D --> E["YAML-Based Detection Engine"]
+    E --> F["Incident Correlation"]
+    F --> G["Evidence-Linked Timelines"]
+    G --> H["Investigation & Reporting Services"]
+    H --> I["Python CLI"]
+    H --> J["Sentinel Streamlit Dashboard"]
+    K["Validated Detection & Correlation Configuration"] --> E
+    K --> F
 ```
 
-See [architecture, sequence and evidence relationship diagrams](docs/ARCHITECTURE.md)
-for complete, editable diagram source.
+**Architecture principle:** The command-line interface and Streamlit dashboard share the same analysis, validation and reporting backend. Security logic is not duplicated in the interface.
 
-## Run it locally (Windows 11 + VS Code)
+See [Architecture Documentation](docs/ARCHITECTURE.md) for additional diagrams and design decisions.
 
-Requirements: **Python 3.13+**, VS Code terminal and Git. The project uses
-PyYAML at runtime and pytest for tests. These are freely available libraries.
+## 🛠️ Technology Stack
 
-If you already have the project's `.venv`, **keep it**. In PowerShell at the
-repository root:
+| Category | Technologies |
+|---|---|
+| Core language | Python 3.13 |
+| Dashboard | Streamlit, Pandas, Altair |
+| Detection configuration | YAML, PyYAML |
+| Testing | Pytest |
+| Source control | Git, GitHub |
+| Data formats | Syslog, Windows Security XML, JSON, CSV |
+| Development environment | VS Code, Windows 11 |
+| Deployment | Local Python application |
+
+## 🚀 Quick Start
+
+### Requirements
+
+- Python 3.13 or newer
+- Git
+- A supported web browser
+- Internet connection for installing Python dependencies
+
+### 1. Clone the repository
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m security_log_toolkit --version
-.\.venv\Scripts\python.exe -m security_log_toolkit doctor
-.\.venv\Scripts\python.exe -m pytest -q
+git clone https://github.com/Abdullah-Al-Mahi/python-security-log-toolkit.git
+
+cd python-security-log-toolkit
 ```
 
-A new checkout can create a virtual environment using:
+### 2. Create a virtual environment
 
 ```powershell
 py -3.13 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-On Linux/macOS use `python3.13 -m venv .venv` and `.venv/bin/python` instead.
-No Windows activation policy change is needed when calling the Python
-interpreter in the virtual environment directly.
-
-## Phase 10 — Launch the private local SOC dashboard
-
-The modern **Sentinel** dashboard is implemented using the *same* Python
-analysis and reporting services as the CLI. Streamlit is an optional free
-dependency and is **not needed to run any existing CLI command**.
+### 3. Install dependencies
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
+```
+
+### 4. Start the Sentinel dashboard
+
+```powershell
 .\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-Open **http://127.0.0.1:8501** on your own laptop. Keep the terminal open;
-press **Ctrl+C** to stop. The dashboard initially displays the bundled
-synthetic sample. It also accepts bounded raw Linux/Windows XML uploads,
-loads earlier investigation JSON, filters incidents and evidence timelines,
-lets you adjust detection thresholds for the current session, runs synthetic
-validation/benchmarking, and downloads the same seven CSV/JSON/manifest files.
+Open:
 
-The app binds only to loopback by default, **has no login system**, and must
-**not** be exposed to a network or used as a hosted multi-user SIEM. Uploaded
-raw files are processed in temporary files, but Streamlit's browser session
-may retain raw upload data in server memory until cleared. No reports are
-automatically uploaded or published. Never upload private data without
-permission. See [full local dashboard guide](docs/WEB_DASHBOARD_GUIDE.md).
+**http://127.0.0.1:8501**
 
-**Acceptance:** The web implementation has been integrated and backend tests
-are passing locally, but it must be tested in the user's Windows 11 browser
-before the project is declared finished.
+The application loads bundled synthetic authentication data so the dashboard can be explored without supplying real security logs.
 
-## One-command, reproducible portfolio demonstration
+Press **Ctrl+C** in the terminal to stop the local server.
 
-This command calls the **same backend used by the CLI** and writes demonstration
-artifacts derived only from the checked-in synthetic fixtures:
+> The dashboard is designed for a single local user. It does not include authentication and must not be exposed directly to the public internet.
+
+## 🔎 Command-Line Investigation
+
+The toolkit can also operate independently of Streamlit.
+
+Example: analyze the bundled Linux and Windows authentication samples.
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/demo_portfolio.py --output-dir reports/phase9_demo
+.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --output reports/investigation.json
 ```
 
-The output is intentionally created **once**. Repeated runs must specify a new
-directory, for example `reports/phase9_demo_2`; the script never overwrites an
-existing report directory.
+Display the investigation summary:
 
-The demo writes an analyst summary, investigation JSON, five linked CSV tables,
-a complete export manifest, a synthetic validation summary, and a portfolio
-SHA-256 manifest. All files remain local and should stay outside Git.
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/investigation.json
+```
 
-| Synthetic demo metric | Expected |
+The `reports/` directory is intended for local generated artifacts and is excluded from publication, except for its empty Git placeholder.
+
+## 📊 Reproducible Demonstration Results
+
+The bundled synthetic investigation generates the following results:
+
+| Measurement | Result |
 |---|---:|
 | Authentication events | 29 |
 | Detection findings | 6 |
-| Correlated + individual incidents | 4 |
-| Linked evidence records | 22 |
-| Manually labeled scenarios / events | 4 / 41 |
-| Scenario rule/IP TP / FP / FN | 6 / 0 / 0 |
+| Incidents | 4 |
+| Linked evidence events | 22 |
+| Synthetic validation scenarios | 4 |
+| Scenario-level true positives | 6 |
+| Scenario-level false positives | 0 |
+| Scenario-level false negatives | 0 |
 
-**Precision, recall and F1 = 1.0 on the fixed synthetic scenario labels only.**
-This does not describe real-world detector accuracy, account compromise, or
-statistical confidence. The benchmark reports in-memory service timing and is
-not an end-to-end ingest or UI performance test.
+The labeled synthetic scenarios produce precision, recall and F1 scores of 1.0 for the evaluated rule/source-IP combinations.
 
-## Everyday commands
+**These results do not establish real-world detection accuracy, production throughput or confirmed system compromise.**
 
-```powershell
-# Analyze raw Linux and Windows data and write a JSON investigation report
-.\.venv\Scripts\python.exe -m security_log_toolkit analyze --linux samples/linux/attack_auth.log --windows samples/windows/attack_security.xml --year 2026 --utc-offset +08:00 --output reports/investigation.json
+### Automated testing
 
-# Read the analyst summary
-.\.venv\Scripts\python.exe -m security_log_toolkit report --input reports/investigation.json
+At the Phase 10 Windows acceptance milestone, the project passed **460 automated tests**, including a Streamlit smoke test.
 
-# Create five CSV tables, JSON and integrity manifest
-.\.venv\Scripts\python.exe -m security_log_toolkit export --input reports/investigation.json --format both --output-dir reports/investigation_exports
+Subsequent UI revisions should be retested before a newer passing test count is claimed.
 
-# Verify labeled synthetic detections; independently check local throughput
-.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/validation.json
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/benchmark.json
-```
-
-An existing output path is normally rejected. The CLI supports explicitly
-controlled `--force` on selected commands; it protects input files and
-configuration paths. Native Windows binary `.evtx` is **not** supported: first
-export the relevant Security events to XML through authorized tooling.
-
-See [CLI guide](docs/CLI_GUIDE.md),
-[reporting guide](docs/REPORTING_GUIDE.md), and
-[validation limits](docs/SECURITY_VALIDATION_GUIDE.md).
-
-## Security and privacy / before GitHub publication
-
-Real authentication logs may contain personal identifiers, network details and
-security-relevant information. **Do not commit real log files, incident exports,
-credentials, private key material or `.venv/`.** Before any approved remote
-publication run:
+Run the regression suite:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/audit_portfolio.py
-git status --short
-git ls-files
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-The audit checks tracked paths and a limited set of token patterns **offline**;
-it cannot prove that a repository, its full Git history or its screenshots are
-free of secrets. Manually review your existing `.gitignore`, license, samples,
-and Git history using the [release checklist](docs/RELEASE_CHECKLIST.md).
+Check the development environment:
 
-**Nothing in Phase 9 or Phase 10 uploads or publishes this project automatically.**
-A manual-only GitHub Actions test workflow is included for later optional use;
-its remote execution is not required and availability/usage allowances can vary.
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit doctor
+```
 
-## Interview-ready documentation
+## 🔐 Security & Privacy Considerations
 
-- [Five-minute demonstration script](docs/DEMO_WALKTHROUGH.md)
-- [Architecture and editable Mermaid diagrams](docs/ARCHITECTURE.md)
-- [Portfolio case study and CV bullets](docs/PORTFOLIO_CASE_STUDY.md)
-- [Screenshot capture guide](docs/SCREENSHOT_GUIDE.md) (no fabricated screenshots)
-- [Publication/privacy review](docs/RELEASE_CHECKLIST.md)
-- [Official Phase 0–10 roadmap](docs/ROADMAP.md)
-- [Phase 10 dashboard handoff](docs/PHASE10_HANDOFF.md)
+Sentinel was developed with defensive input validation and local execution in mind.
 
-## Limitations and roadmap
+- Uploaded raw files are size-limited and processed using temporary storage.
+- Windows XML document type and entity declarations are rejected.
+- Configuration files are validated before use.
+- Report outputs include safeguards against CSV formula injection.
+- SHA-256 manifests support export integrity verification.
+- The dashboard does not automatically publish investigation data.
+- Browser session memory may retain uploaded content until cleared or the application exits.
 
-The tool is an **offline authentication-log prototype**, not a real-time SIEM or
-forensic chain-of-custody platform. Linked timelines are not complete system
-activity. It does not collect logs from remote hosts or establish attribution.
+**Supported input scope:** Linux OpenSSH authentication logs and Windows Security XML Event IDs 4624/4625. Binary `.evtx` files require conversion to supported XML before analysis.
 
-**Phase 9** delivered documentation and reproducible portfolio evidence.
-**Phase 10** implements the required Streamlit dashboard with upload/analyze,
-incident exploration, charts, timelines, session-only configuration,
-validation and CSV/JSON downloads, all backed by the existing Python services.
-The CLI is still fully functional. **Final project acceptance is pending
-Windows 11 browser and CLI verification.**
+This project is an educational and portfolio-oriented security investigation prototype, not a production SIEM, forensic chain-of-custody solution or automated incident-response system.
 
-## License
+Only analyze data that you are authorized to access.
 
-See the repository's existing [`LICENSE`](LICENSE) file; do not replace its
-original author or license terms without authorization.
+## 📁 Project Structure
+
+```text
+python-security-log-toolkit/
+├── .github/
+├── .streamlit/
+├── config/
+├── dashboard/
+│   ├── app.py
+│   └── sentinel.css
+├── docs/
+│   ├── screenshots/
+│   ├── ARCHITECTURE.md
+│   ├── PORTFOLIO_CASE_STUDY.md
+│   └── DEMO_WALKTHROUGH.md
+├── samples/
+├── scripts/
+├── src/
+│   └── security_log_toolkit/
+├── tests/
+├── README.md
+├── LICENSE
+└── pyproject.toml
+```
+
+## 📚 Documentation
+
+| Document | Description |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | System components, investigation pipeline and design diagrams |
+| [Portfolio Case Study](docs/PORTFOLIO_CASE_STUDY.md) | Engineering approach, results, tradeoffs and project scope |
+| [Demo Walkthrough](docs/DEMO_WALKTHROUGH.md) | Reproducible interview demonstration |
+| [CLI Guide](docs/CLI_GUIDE.md) | Command-line operations |
+| [Reporting Guide](docs/REPORTING_GUIDE.md) | Export structure and evidence relationships |
+| [Security Validation](docs/SECURITY_VALIDATION_GUIDE.md) | Synthetic testing methodology and limitations |
+
+## 📜 License
+
+Distributed under the [MIT License](LICENSE), subject to the copyright and attribution stated in the repository.
+
+---
+
+<div align="center">
+
+**Sentinel Prism — Security investigation, backed by traceable evidence.**
+
+Built as a cybersecurity and Python engineering portfolio project.
+
+[Back to Top](#️-sentinel)
+
+</div>

@@ -1,89 +1,147 @@
-# Portfolio case study — Security Log Automation and Correlation
 
-**Project:** Python Security Automation & Log Correlation Toolkit
-**Role:** Independent Python/cybersecurity portfolio implementation
-**Scope:** Offline Linux/Windows login analysis; free tools, no external services
-**Stack:** Python 3.13, PyYAML, pytest, Git, Windows 11 / VS Code
+# Sentinel — Cybersecurity Engineering Case Study
 
-## Problem
+## Project Summary
 
-Authentication evidence in Linux OpenSSH and Windows Security logs is represented
-differently. Manually reviewing login attempts across files makes it difficult
-to spot repeated failures, account spraying, and failed attempts followed by
-successful logins. A raw alert list also lacks incident context and evidence
-traceability.
+**Project:** Python Security Automation & Log Correlation Toolkit  
+**Interface:** Sentinel Prism SOC Dashboard  
+**Release:** Version 1.0.0  
+**Project Type:** Independent cybersecurity portfolio project  
+**Technologies:** Python, Streamlit, PyYAML, Pytest, Altair, Git, Windows Security XML, Linux SSH logs  
 
-## Approach
+## 1. Problem
 
-I built an offline Python pipeline that normalizes Linux/Windows authentication
-records to a common UTC model. YAML-configurable rules detect three patterns:
-brute force, password spraying, and authentication success after failures.
-Related findings are correlated by platform, host, source IP and time window.
-The pipeline generates evidence-linked timelines with cautious analyst summaries,
-then produces readable reports and five linked CSV tables with full JSON and
-SHA-256 export metadata.
+Security analysts frequently investigate authentication events from multiple operating systems.
 
-From Phase 6 onward, the same services can analyze raw files in a single run
-without writing intermediate normalized JSON. Phase 8 adds bounded inputs,
-malformed/hostile XML checks, adverse fixtures and independent test coverage.
+Linux OpenSSH and Windows Security logs use different formats, fields and time representations. This makes manual review and correlation of suspicious login activity more difficult.
 
-## Reproducible results (synthetic samples only)
+The goal was to develop a repeatable investigation workflow that could identify authentication attack patterns and preserve the underlying evidence.
 
-| Measurement | Bundled demonstration |
+## 2. Solution
+
+Sentinel is an offline-first Python security analysis application with two interfaces:
+
+- A command-line toolkit for scripted analysis and report generation.
+- A seven-workspace Streamlit dashboard for interactive investigation.
+
+Both interfaces share the same parsing, detection, correlation, validation and reporting services.
+
+## 3. Core Implementation
+
+### Log Processing
+
+Implemented supported Linux SSH and Windows Security XML parsing, with normalized timestamps, hosts, accounts, source IPs and source references.
+
+### Threat Detection
+
+Implemented configurable YAML-based rules for:
+
+- Repeated authentication failures consistent with brute-force activity.
+- Password spraying across multiple accounts.
+- Successful authentication following suspicious failures.
+
+### Incident Correlation
+
+Grouped related detection findings using platform, host, source IP and bounded time windows.
+
+### Investigation and Reporting
+
+Generated evidence-linked timelines, analyst summaries, five structured CSV tables, JSON investigation reports and SHA-256 export manifests.
+
+### Interactive Interface
+
+Developed Sentinel Prism using Streamlit, including investigation dashboards, filtering, charts, dark/light appearance modes, session-based rule configuration, validation and exports.
+
+## 4. Security Engineering Decisions
+
+| Decision | Reason |
+|---|---|
+| Shared backend services | Avoid inconsistent behavior between the CLI and dashboard |
+| Explicit log time information | Prevent ambiguous Linux timestamp assumptions |
+| File-size limits | Reduce accidental and malicious resource consumption |
+| XML DTD/entity rejection | Reduce exposure to unsafe XML declarations |
+| Validated YAML configuration | Reject malformed or unsupported rule settings |
+| Temporary raw-upload processing | Avoid persistent raw log files during dashboard analysis |
+| Evidence identifiers | Preserve traceability between findings, incidents and source events |
+| CSV formula safeguards | Reduce spreadsheet formula interpretation risk |
+
+These defenses improve robustness but do not make the application suitable for exposure as an unauthenticated public service.
+
+## 5. Testing and Results
+
+### Verified Development Milestone
+
+At the Phase 10 Windows acceptance milestone:
+
+- 460 automated tests passed.
+- All seven dashboard workspaces were manually accepted.
+- Existing CLI functionality remained operational.
+- The application returned READY during environment diagnostics.
+
+Later UI-only changes require fresh regression testing before a newer validation claim is made.
+
+### Bundled Synthetic Investigation
+
+| Metric | Result |
 |---|---:|
-| Raw log files | 2 |
 | Normalized events | 29 |
-| Rule findings | 6 |
+| Findings | 6 |
 | Incidents | 4 |
 | Linked evidence entries | 22 |
-| Manually labeled scenarios | 4 |
-| Rule/IP labels TP / FP / FN | 6 / 0 / 0 |
-| Report export files | 7 |
+| Ground-truth scenarios | 4 |
+| Scenario-level TP / FP / FN | 6 / 0 / 0 |
 
-The scenario-level P/R/F1 result of 1.0 is not a field estimate of detection
-accuracy. Metrics do not prove attribution, account compromise, or resilience to
-all adversarial log inputs. Performance measured in Phase 8 is in-memory and
-hardware-specific, excluding parsing, I/O and dashboard costs.
+Synthetic scenario scores are not estimates of production detection accuracy.
 
-## Engineering decisions and tradeoffs
+## 6. Technical Challenges
 
-- **Offline-first:** no account, subscription, API key or external database is
-  required; useful for reproducible demonstration and privacy.
-- **Shared backend:** both the CLI and required Phase 10 dashboard will call
-  the same functions instead of maintaining duplicate rule logic.
-- **Evidence over claims:** preserve source line/record references and link
-  detection findings to incidents and timeline entries.
-- **Defensive processing:** conservative input limits, explicit syslog timezone,
-  bounded XML, safe configuration loaders, output replacement protections and
-  CSV spreadsheet-injection mitigations.
-- **Current limitations:** only Linux `sshd` patterns and Windows exported
-  Security XML 4624/4625 are supported; no native binary `.evtx`, live ingestion,
-  SIEM connector, storage server, or production incident response automation.
+### Cross-Platform Normalization
 
-## Demo and code review
+A shared event schema was necessary to analyze Windows and Linux authentication evidence consistently.
 
-See [`DEMO_WALKTHROUGH.md`](DEMO_WALKTHROUGH.md),
-[`ARCHITECTURE.md`](ARCHITECTURE.md), and
-[`SECURITY_VALIDATION_GUIDE.md`](SECURITY_VALIDATION_GUIDE.md).
-The project maintains a fully functional CLI. Phase 10 is a **planned required**
-local visual dashboard and is not part of the present release.
+### Correlation Accuracy
 
-## CV-ready bullets (use only after verifying on your machine)
+Correlation boundaries needed to prevent unrelated hosts and source IPs from being incorrectly merged into one incident.
 
-- Developed an offline Python security log toolkit integrating Linux/Windows
-  authentication normalization, YAML-based detection, incident correlation, and
-  evidence-linked investigation timelines.
-- Implemented deterministic CSV/JSON reporting, SHA-256 export manifests,
-  cross-platform input validation, and a regression suite of 360+ automated
-  tests including adversarial scenarios.
-- Evaluated four labeled synthetic authentication scenarios and implemented
-  bounded in-memory benchmarking, documenting the limitations of each metric.
+### Evidence Integrity
 
-## Short interview explanation
+Reports and timelines needed to preserve event relationships and source references instead of showing only alert counts.
 
-"The hardest part was preserving traceability while merging different log
-formats. I used a shared event representation with stable evidence links and
-made detection rules configurable. Instead of claiming that a login success
-means compromise, the tool shows the observed sequence and suggests follow-up
-checks. I also wrote adversarial regression tests and used Git checkpoints to
-keep earlier functionality intact."
+### Interface and Backend Separation
+
+The dashboard was designed as a presentation layer over the existing analysis engine rather than a duplicate implementation.
+
+## 7. Scope and Limitations
+
+Sentinel is a local single-user investigation prototype.
+
+It does not support native binary EVTX parsing, continuous SIEM ingestion, network traffic analysis, user authentication, public multi-user deployment or production response automation.
+
+A successful authentication after failures is an investigative signal, not proof of account compromise.
+
+The application should only process logs obtained with appropriate authorization.
+
+## 8. Demonstration
+
+Start the dashboard:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
+```
+
+The bundled synthetic dataset allows an employer to explore the dashboard without sharing sensitive real-world security events.
+
+See the [Demonstration Walkthrough](DEMO_WALKTHROUGH.md) and [System Architecture](ARCHITECTURE.md).
+
+## 9. Project Outcome
+
+The completed project demonstrates practical application of:
+
+- Python security automation and log processing.
+- Authentication threat detection and incident correlation.
+- Evidence-focused security investigation.
+- Secure input handling and defensive validation.
+- Automated regression testing.
+- Interactive cybersecurity interface development.
+
+It is intended to demonstrate relevant skills for cybersecurity, SOC analyst, security engineering and IT infrastructure internship positions.

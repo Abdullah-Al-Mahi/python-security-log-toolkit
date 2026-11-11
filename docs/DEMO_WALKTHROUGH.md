@@ -1,88 +1,89 @@
-# Five-minute internship demonstration (offline)
 
-This walkthrough uses **bundled synthetic data exclusively**. Nothing is
-uploaded or published. Run all commands from the repository root in VS Code.
+# Sentinel — Five-Minute Interview Demonstration
 
-## Preparation (Windows 11 PowerShell)
+This demonstration uses bundled synthetic data only.
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m security_log_toolkit doctor
-.\.venv\Scripts\python.exe -m pytest -q
-```
+## Preparation
 
-Expected on the Phase 9 baseline: doctor `READY`, **all 360 Phase 8 tests plus
-Phase 9 tests passing** (see installed test output). The complete suite must be
-run on your machine before citing a test count as your own result.
-
-## Step 1 — Create presentation-ready artifacts (45–60 seconds of speech)
+Install the optional web dependencies and start Streamlit from the project root:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/demo_portfolio.py --output-dir reports/phase9_demo
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
+
+.\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-Expected synthetic summary: **29 normalized events, 6 findings, 4 incidents,
-22 linked evidence records**. There are **4 manually labeled scenarios, 41 events,
-6 TP, 0 FP, 0 FN** for the rule/IP scenario-label check. These metrics do not
-measure field accuracy or production threat detection performance.
+Open http://127.0.0.1:8501 in a browser.
 
-Outputs:
+## 1. Project Introduction — 30 seconds
 
-- `reports/phase9_demo/analyst_summary.txt` — talking points
-- `reports/phase9_demo/investigation.json` — complete investigation record
-- `reports/phase9_demo/export/` — five CSV files, JSON and SHA-256 manifest
-- `reports/phase9_demo/validation_summary.json` — synthetic validation summary
-- `reports/phase9_demo/portfolio_manifest.json` — SHA-256 verification index
+"Sentinel is a Python-based security log analysis and incident investigation toolkit. It analyzes supported Linux and Windows authentication events, applies configurable detection rules, and correlates related findings into evidence-linked incidents."
 
-The script **refuses to overwrite** an existing output directory. To repeat,
-choose `--output-dir reports/phase9_demo_2` rather than deleting earlier reports.
-Do not commit files from `reports/` to Git.
+Explain that the tool has both a command-line interface and a Streamlit dashboard using the same analysis engine.
 
-## Step 2 — Show the detection and response workflow (90 seconds)
+## 2. Command Center — 60 seconds
 
-1. Open `analyst_summary.txt`. Explain that the toolkit parses Linux OpenSSH
-   and Windows Security 4624/4625 XML into a shared UTC event model.
-2. Open `export/incidents.csv`. Point to two critical and two high severity
-   synthetic incidents, grouped by host/platform/source IP.
-3. Open `export/findings.csv`. Explain brute force, password spray and failed
-   attempts followed by a successful authentication.
-4. Open `export/timelines.csv`. Identify the failed-to-successful authentication
-   pattern. Explicitly state **it is an investigative lead, not proof of compromise**.
-5. Open `export/export_manifest.json`. Explain SHA-256 detects content changes
-   when compared with a trusted manifest; the file is not a signed chain of custody.
+Open the Command Center.
 
-## Step 3 — Show defensive testing (60 seconds)
+Using the bundled synthetic demo, show:
 
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase9_validation.json
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase9_benchmark.json
-```
+| Metric | Expected |
+|---|---:|
+| Events | 29 |
+| Findings | 6 |
+| Incidents | 4 |
+| Linked evidence records | 22 |
 
-Describe malicious-input cases: invalid IPs, oversized logs, XML DTD/entities,
-misleading cross-host activity, and path traversal in scenario manifests.
-Benchmark timing is **hardware-dependent in-memory analysis**, excluding raw
-parsing, file writing and UI overhead.
+Highlight the severity distribution, source-IP analysis and evidence activity chart.
 
-## Step 4 — Explain architecture and upcoming UI (60 seconds)
+Clarify that these values come from synthetic data rather than live network monitoring.
 
-Open [`ARCHITECTURE.md`](ARCHITECTURE.md). Explain that parsing, detection,
-correlation, timeline generation, validation and export functions are independent
-of the CLI. Phase 10 will be a **free local Streamlit dashboard** on the same
-backend; **it is not implemented in Phase 9**.
+## 3. Incident Investigation — 90 seconds
 
-## Step 5 — Show development evidence and close (30 seconds)
+Open Incident Explorer.
 
-```powershell
-git --no-pager log -6 --oneline
-.\.venv\Scripts\python.exe -m pytest -q
-```
+Filter to critical incidents and select one case.
 
-Suggested closing: "I built this to demonstrate an end-to-end SOC investigation
-workflow, with repeatable synthetic experiments and evidence-linked exports. My
-next milestone is a local dashboard calling the same tested Python services."
+Demonstrate:
 
-## Suggested screenshots (capture manually)
+- Incident severity and source IP
+- Platform and affected host
+- Detection rule identifiers
+- Analyst summary
+- Linked evidence references
 
-See [`SCREENSHOT_GUIDE.md`](SCREENSHOT_GUIDE.md). Capture **real application
-screenshots from your local computer**. Do not present example image mockups as
-working UI. Phase 10 dashboard screenshots can be added only when built.
+Then open Evidence Timeline and show the chronological relationship between authentication events.
+
+Explain that suspicious login sequences require further investigation before compromise can be established.
+
+## 4. Detection Configuration — 45 seconds
+
+Open Detection Lab.
+
+Show the rule controls and explain that modifications are session-only.
+
+Change one rule setting, apply it, and re-run the bundled synthetic data.
+
+Restore the committed defaults before continuing.
+
+## 5. Validation and Reports — 60 seconds
+
+Open Validation & Performance.
+
+Run the labeled synthetic scenario validation and explain its limited scope.
+
+Then open Report Center and show the downloadable CSV/JSON investigation bundle.
+
+Explain that the SHA-256 manifest supports comparison of exported file contents against their recorded hashes.
+
+## 6. Closing — 15 seconds
+
+"The main engineering focus was preserving evidence traceability while supporting two log formats and multiple investigation workflows. I separated the Python security backend from the interface, added defensive input validation, and maintained automated regression tests."
+
+## Limitations
+
+Sentinel is a local portfolio prototype, not a production SIEM.
+
+It does not provide live network monitoring, authenticated multi-user deployment or native binary EVTX parsing.
+
+All demonstration figures are derived from bundled synthetic fixtures.
