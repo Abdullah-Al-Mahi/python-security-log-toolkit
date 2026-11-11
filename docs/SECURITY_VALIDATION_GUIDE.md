@@ -1,132 +1,185 @@
-# Phase 8 — Security, accuracy and performance validation
 
-Introduced in **0.8.0** and retained in **1.0.0**. All examples are offline and free. Use Windows PowerShell from
-`C:\Users\abmah\CyberSecurity-Projects\python-security-log-toolkit`.
+# Sentinel — Security Validation and Performance Evaluation
 
-## Scope and explicit limitations
+**Version:** 1.0.0  
+**Scope:** Authentication log analysis and local investigation workflows
 
-The toolkit supports UTF-8 Linux OpenSSH syslog and Windows Security **XML exports**
-containing event IDs 4624 and 4625; **not binary .evtx**, general Windows events,
-or live SIEM streaming. Indicators are investigation leads, not proven compromise.
-Raw logs may contain usernames/IP addresses; never publish real personal/security
-logs in a GitHub portfolio or upload them to untrusted websites.
+## Overview
 
-Phase 8 adds conservative file-size limits at the **shared backend entry points**:
+I developed automated validation and defensive input tests to assess the reliability of Sentinel's supported authentication analysis workflows.
 
-| Data | Limit | Behavior |
-| --- | --- | --- |
-| Raw Linux `.log` and Windows `.xml` (via `ingest_file`) | 16 MiB each | Rejected before parsing |
-| Phase 2 normalized JSON (`load_normalized_events`) | 32 MiB per file | Rejected before decoding |
-| Existing incident JSON used with `timeline --incident-report` | 50 MiB | Rejected before decoding |
-| Individual Linux syslog line | 65,536 characters | Rejected with filename and line |
+The tests cover malformed inputs, configuration errors, correlation boundaries, source-size limits, and selected adversarial cases.
 
-Windows XML DTD and entity declarations are explicitly rejected, including UTF-16
-markup. XML parser still accepts valid UTF-8 and UTF-16 Windows event exports.
-These conservative safeguards do **not** prove immunity to all resource-exhaustion,
-CPU, path, race-condition or XML parser attacks. Do not expose the local parser as
-an unauthenticated public API. Large production logs would need streaming parsing,
-resource quotas and additional review.
+The validation exercises are reproducible, but they do not establish immunity to all security threats or production detection accuracy.
 
-The earlier 50 MiB limit for the `report`/`export` commands remains in place.
+## Supported Inputs
 
-## Reproduce synthetic detection accuracy
+Sentinel processes:
 
-The ground truth at `samples/validation/ground_truth.json` was **manually labeled
-before evaluation**, listing expected `(rule_id, source_ip)` pairs in four synthetic
-source scenarios. Two sources contain attack-pattern fixtures; two are below
-configured thresholds. The evaluator checks whether a rule/IP pair is present in
-each scenario, *not* number of individual alerts, exact onset time or account compromise.
+- Supported Linux OpenSSH authentication logs.
+- Windows Security XML authentication events, primarily Event IDs 4624 and 4625.
+- Validated normalized JSON and existing investigation reports for supported workflows.
 
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase8_validation.json
+Native binary `.evtx` files are not supported.
+
+## Input and Resource Limits
+
+| Input Type | Limit |
+|---|---|
+| Raw Linux or Windows log file | 16 MiB each |
+| Dashboard raw uploads | 4 files, 32 MiB combined |
+| Normalized JSON file | 32 MiB |
+| Existing investigation JSON | 50 MiB |
+| Individual Linux syslog line | 65,536 characters |
+
+The limits reduce accidental and malicious resource consumption. They do not guarantee resistance against every denial-of-service or parser attack.
+
+## Defensive Input Handling
+
+### XML Validation
+
+I added rejection checks for XML DTD and entity declarations, including supported UTF-16 inputs.
+
+Malformed XML is rejected instead of being interpreted as valid security evidence.
+
+### Configuration Validation
+
+Detection and correlation settings use schema-checked YAML.
+
+Unsupported settings, invalid values, and unsafe YAML structures are rejected.
+
+### Event Validation
+
+The event-processing pipeline checks important fields such as timestamps and source IP addresses.
+
+It does not invent missing source addresses or silently merge unrelated host activity.
+
+### Correlation Boundaries
+
+I tested the separation of events by platform, hostname, source IP, and time window.
+
+This helps avoid incorrect grouping of unrelated authentication activity.
+
+## Labeled Synthetic Detection Evaluation
+
+The evaluation manifest is stored at:
+
+```text
+samples/validation/ground_truth.json
 ```
 
-Expected default-config counts: **4 scenarios, 41 normalized events, 6 TP, 0 FP,
-0 FN, synthetic precision 1.0000, recall 1.0000, F1 1.0000**.
+The ground truth contains four manually labeled synthetic scenarios.
 
-- True positive: expected rule/IP pair is detected in the relevant scenario.
-- False positive: rule/IP pair is observed but not in its manually labeled list.
-- False negative: expected pair isn't observed.
-- No true-negative **count** is defined: it requires enumerating a bounded set of
-  negative rule/IP opportunities. Consequently **accuracy and real-world FPR are
-  not reported**.
-- This tiny synthetic set is *not* representative of real-world activity and does
-  not establish production precision/recall. It will miss many real-world evasion
-  patterns, noisy environments, distributed attacks and unusual timestamps.
-- Changing detection YAML may change scores, as expected.
+Each expected label represents a rule ID and source-IP combination within a scenario.
 
-To inspect the report:
+Run the evaluator:
 
 ```powershell
-$validation = Get-Content 'reports\phase8_validation.json' -Raw | ConvertFrom-Json
-$validation.summary | Format-List
-$validation.scenarios | Select-Object name,events,true_positives,false_positives,false_negatives | Format-Table
+.\.venv\Scripts\python.exe -m security_log_toolkit validate
 ```
 
-The evaluator rejects malformed ground-truth JSON, duplicate labels, invalid IPs,
-unknown rules, absolute/traversal paths and escapes from the permitted samples root.
+Expected default synthetic results:
 
-## Reproduce bounded performance benchmark
+| Measurement | Value |
+|---|---:|
+| Scenarios | 4 |
+| Normalized events | 41 |
+| True positives | 6 |
+| False positives | 0 |
+| False negatives | 0 |
+| Precision | 1.0 |
+| Recall | 1.0 |
+| F1 | 1.0 |
+
+### Interpretation
+
+These measurements evaluate whether expected rule/IP combinations are present in the labeled synthetic scenarios.
+
+They do not measure:
+
+- Overall production detection accuracy.
+- Real-world false-positive rate.
+- Exact alert onset timing.
+- Confirmed compromise.
+- Resistance to every evasion technique.
+
+The evaluation does not define a complete true-negative population, so overall accuracy and real-world false-positive rates are not reported.
+
+## Performance Benchmark
+
+Sentinel includes a bounded in-memory benchmark for detection, correlation, and incident serialization.
+
+Run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase8_benchmark.json
+.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3
 ```
 
-For an optional scaling comparison (run **without an output**):
+Accepted ranges:
+
+| Parameter | Range |
+|---|---|
+| Generated events | 100–5000 |
+| Repetitions | 2–10 |
+
+The benchmark reports median latency, nearest-rank p95 latency, and an estimated event-processing rate for the measured in-memory workflow.
+
+It excludes raw-log parsing, disk I/O, CSV generation, dashboard rendering, and live operational ingestion.
+
+Performance depends on the hardware and software environment.
+
+## Adversarial Test Fixtures
+
+The repository includes synthetic fixtures for cases such as:
+
+- Rejected XML entity declarations.
+- Malformed XML.
+- Invalid source IP values.
+- Interleaved Linux source IPs.
+- Windows events from distinct hosts.
+- Unsupported event formats.
+
+Additional automated tests generate oversized or malformed inputs, UTF-16 XML declaration cases, and invalid scenario paths.
+
+These datasets are not real incident evidence.
+
+## Automated Regression Testing
+
+Run the complete suite from the repository root:
 
 ```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 3000 --runs 3
-```
-
-The benchmark creates deterministic **synthetic normalized Python events** and
-times shared **detection + correlation + incident serialization** services in
-memory, after creating events and loading configuration. It does not read raw
-files, run export, measure the full web UI, or estimate continuous live ingestion
-capacity. Hardware load, CPU architecture and Python version affect measured
-milliseconds and events/second; do not claim a fixed expected speed. It returns
-median latency, nearest-rank p95, min/max, median events/second, and result counts.
-`--events` accepts **100–5000**; `--runs` accepts **2–10** to bound accidental
-resource consumption. A benchmark is not a security or availability guarantee.
-
-## Adversarial sample fixtures
-
-These are entirely synthetic; do not use them as production security evidence.
-
-- `samples/validation/reject_external_entity.xml` — forbidden external entity
-  declaration. Must be **rejected**, not expanded or fetched.
-- `samples/validation/reject_malformed.xml` — malformed XML that fails parsing.
-- `samples/validation/reject_bad_ip.log` — recognized SSH event with malformed IP;
-  must raise a contextual validation error rather than invent an IP.
-
-Tests generate sparse oversized files, overlong lines, UTF-16 entity declarations,
-path traversal attempts, disabled rules and malformed label manifests. No web
-requests or paid services are required.
-
-## Verification and Git
-
-```powershell
-.\.venv\Scripts\python.exe -m security_log_toolkit status
-.\.venv\Scripts\python.exe -m security_log_toolkit doctor
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m security_log_toolkit validate --output reports/phase8_validation.json
-.\.venv\Scripts\python.exe -m security_log_toolkit benchmark --events 1000 --runs 3 --output reports/phase8_benchmark.json
 ```
 
-Both report outputs are intentionally **overwrite-protected**: repeat with
-`--force` only if you explicitly want to replace those generated reports.
-Keep `reports/` ignored by Git. Commit updated source code, synthetic fixture files,
-tests and documentation—not sensitive live logs.
+At the completed Phase 10 Windows milestone, I verified 460 passing tests, including a Streamlit smoke test.
 
-## Preparing Phase 10
+Subsequent UI changes should be retested before claiming a newer total.
 
-`security_log_toolkit.quality.evaluate_scenarios()` and
-`security_log_toolkit.quality.run_benchmark()` accept ordinary Python arguments
-and return JSON-safe dictionaries. The future private Streamlit UI can call these
-services without shelling out or duplicating validation logic. Treat benchmarks
-as diagnostics and display synthetic-only labels visibly in the dashboard.
-- `samples/validation/edge_linux_auth.log` — interleaved failures from two
-  distinct source IPs below rule thresholds, plus an IPv6 success and benign
-  non-SSH entry. Must not merge failures across IPs.
-- `samples/validation/edge_windows_security.xml` — same source IP spread across
-  two Windows hosts, a local service login missing IP, and a 4634 unsupported
-  event. Must not merge failures across host boundaries.
+Environment diagnostics:
+
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit doctor
+```
+
+## Report Protection
+
+The CLI generally refuses to overwrite an existing generated output unless an appropriate command explicitly supports `--force`.
+
+Input files and protected configuration paths are not intended to be overwritten during analysis.
+
+Generated reports should remain outside Git tracking and should not contain real sensitive information intended for public distribution.
+
+## Deployment Limitations
+
+Sentinel is a local single-user prototype.
+
+The security checks do not make it suitable for unauthenticated internet deployment, forensic chain-of-custody certification, or production SOC operations.
+
+Only authorized log data should be processed.
+
+## Related Documentation
+
+- [Architecture](ARCHITECTURE.md)
+- [Dashboard Guide](WEB_DASHBOARD_GUIDE.md)
+- [CLI Guide](CLI_GUIDE.md)
+- [Reporting Guide](REPORTING_GUIDE.md)

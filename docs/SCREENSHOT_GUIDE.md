@@ -1,28 +1,95 @@
-# Screenshots and portfolio visuals: capture guide
 
-**Screenshots are not included or fabricated in Phase 9.** Capture your actual
-working application locally after running the instructions below. The images
-should not show usernames, real private log paths or secrets that could harm
-privacy. The synthetic test IPs are reserved examples.
+# Sentinel — Screenshot and Portfolio Visuals Guide
 
-| Suggested screenshot | How to obtain | What the caption should say |
-|---|---|---|
-| CLI ready | `security_log_toolkit status` and `doctor` | Tested local backend, v1.0.0 |
-| Investigation summary | Open `reports/phase9_demo/analyst_summary.txt` | Synthetic evidence-driven investigation |
-| Incidents table | Import `reports/phase9_demo/export/incidents.csv` | Four correlated/single-finding synthetic incidents |
-| Linked timeline | Open `reports/phase9_demo/export/timelines.csv` | Chronological *linked* evidence, not whole-log history |
-| Security test run | `python -m pytest -q` | Actual passing count on your own machine |
-| Accuracy validation | Open `validation_summary.json` | Only four manually labeled synthetic scenarios |
-| Architecture diagram | View `docs/ARCHITECTURE.md` on GitHub or Mermaid preview | Framework-neutral pipeline; UI planned for Phase 10 |
+## Purpose
 
-Windows 11 screenshot shortcut: **Win + Shift + S**, then save to a local
-folder outside Git until you approve publication. Crop personal desktop details.
-Do not remove the original evidence context from an image in a misleading way.
+I use genuine application screenshots to demonstrate the completed Sentinel Prism interface and its security investigation capabilities.
 
-Recommended naming when later approved for publication:
-`docs/images/01-cli-doctor.png`, `02-incidents.png`, `03-timeline.png`,
-`04-tests.png`, `05-architecture.png`. Do not create links in the README before
-those exact images exist. Add a caption saying "synthetic demonstration".
+The screenshots in this repository show my locally running application using bundled synthetic demonstration data.
 
-The **Phase 10 web dashboard** will be eligible for separate real screenshots
-once installed and tested; do not label current CLI screenshots as dashboard UI.
+I do not use unrelated UI mockups as evidence of implemented features.
+
+## Published Dashboard Screenshots
+
+| File | Content |
+|---|---|
+| `docs/screenshots/sentinel-dark.png` | Command Center in dark mode |
+| `docs/screenshots/sentinel-light.png` | Command Center in light mode |
+| `docs/screenshots/incident-explorer.png` | Incident investigation interface |
+
+These images are referenced in the main repository README.
+
+## Capturing Updated Screenshots
+
+Start the dashboard locally:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
+```
+
+Open http://127.0.0.1:8501.
+
+Load the bundled synthetic demonstration and confirm that the interface displays the expected investigation metrics.
+
+Use **Win + Shift + S** on Windows to capture the relevant area.
+
+For a professional presentation:
+
+1. Keep the application window clean and readable.
+2. Capture the actual running interface.
+3. Use consistent browser dimensions.
+4. Exclude unrelated applications and notifications.
+5. Avoid exposing private usernames, credentials, local file paths, or real logs.
+6. Keep the synthetic-data label visible where practical.
+7. Use appropriate image resolution without unnecessarily large files.
+
+## Recommended Screenshot Coverage
+
+### Command Center — Dark Mode
+
+Show the project branding, navigation, event metrics, charts, and priority investigations.
+
+### Command Center — Light Mode
+
+Show the same workspace using the alternate theme.
+
+### Incident Explorer
+
+Show filtering controls, selected incident details, and evidence relationships.
+
+### Optional Additional Images
+
+- Evidence Timeline.
+- Detection Lab.
+- Validation & Performance.
+- Report Center.
+- Automated regression test output.
+- Architecture diagrams.
+
+## Image Organization
+
+```text
+docs/
+└── screenshots/
+    ├── sentinel-dark.png
+    ├── sentinel-light.png
+    └── incident-explorer.png
+```
+
+The existing README uses these filenames. If an image is renamed, its README reference must also be updated.
+
+## Privacy and Accuracy
+
+I use synthetic data for publicly shared demonstration images.
+
+I do not publish screenshots containing real authentication logs, customer information, credentials, or confidential infrastructure details.
+
+Image editing should improve readability without misrepresenting analysis results or fabricating capabilities.
+
+The publication-audit script may flag tracked files larger than 2 MiB for manual review. Screenshots should be optimized where practical.
+
+## Updating the Portfolio
+
+When I make significant UI changes, I capture new screenshots from the running application and replace the outdated images.
+
+The README should always reflect the current implemented interface rather than an earlier design or unrelated reference image.

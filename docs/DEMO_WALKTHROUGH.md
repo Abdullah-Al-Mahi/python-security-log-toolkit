@@ -1,11 +1,15 @@
 
-# Sentinel — Five-Minute Interview Demonstration
+# Sentinel — Five-Minute Project Demonstration
 
-This demonstration uses bundled synthetic data only.
+**Project:** Python Security Automation & Log Correlation Toolkit  
+**Interface:** Sentinel Prism  
+**Demonstration data:** Bundled synthetic authentication logs
+
+This is the walkthrough I use to present my project during technical interviews.
 
 ## Preparation
 
-Install the optional web dependencies and start Streamlit from the project root:
+From the repository root:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
@@ -13,77 +17,83 @@ Install the optional web dependencies and start Streamlit from the project root:
 .\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-Open http://127.0.0.1:8501 in a browser.
+Open http://127.0.0.1:8501.
 
-## 1. Project Introduction — 30 seconds
+## 1. Introduction — 30 Seconds
 
-"Sentinel is a Python-based security log analysis and incident investigation toolkit. It analyzes supported Linux and Windows authentication events, applies configurable detection rules, and correlates related findings into evidence-linked incidents."
+"I built Sentinel as a Python-based security log analysis and incident investigation toolkit.
 
-Explain that the tool has both a command-line interface and a Streamlit dashboard using the same analysis engine.
+It processes supported Linux and Windows authentication events, applies configurable detection rules, and correlates related findings into incidents with traceable evidence.
 
-## 2. Command Center — 60 seconds
+I also developed a Streamlit dashboard to make the investigation process easier to explore."
+
+## 2. Command Center — 60 Seconds
 
 Open the Command Center.
 
-Using the bundled synthetic demo, show:
+"I designed this workspace to provide an overview of analyzed authentication activity.
 
-| Metric | Expected |
-|---|---:|
-| Events | 29 |
-| Findings | 6 |
-| Incidents | 4 |
-| Linked evidence records | 22 |
+The bundled synthetic dataset contains 29 events, producing six detection findings, four incidents, and 22 linked evidence records.
 
-Highlight the severity distribution, source-IP analysis and evidence activity chart.
+The charts summarize severity, detection rules, source IP addresses, and evidence activity."
 
-Clarify that these values come from synthetic data rather than live network monitoring.
+Mention that the demonstration uses synthetic logs, not live system monitoring.
 
-## 3. Incident Investigation — 90 seconds
+## 3. Incident Explorer — 90 Seconds
 
-Open Incident Explorer.
+Open Incident Explorer and select a critical incident.
 
-Filter to critical incidents and select one case.
+"This section allows me to investigate individual cases using source IP, host, platform, detection rule, and severity information.
 
-Demonstrate:
+Instead of showing only an alert, Sentinel preserves references to the events that contributed to each finding."
 
-- Incident severity and source IP
-- Platform and affected host
-- Detection rule identifiers
-- Analyst summary
-- Linked evidence references
+Open Evidence Timeline.
 
-Then open Evidence Timeline and show the chronological relationship between authentication events.
+"The timeline shows the chronological sequence of linked evidence. A successful login after repeated failures is treated as an investigative signal, not proof of compromise."
 
-Explain that suspicious login sequences require further investigation before compromise can be established.
-
-## 4. Detection Configuration — 45 seconds
+## 4. Detection Lab — 45 Seconds
 
 Open Detection Lab.
 
-Show the rule controls and explain that modifications are session-only.
+"I made the detection thresholds configurable so the analysis can be adjusted without changing the detection code.
 
-Change one rule setting, apply it, and re-run the bundled synthetic data.
+The dashboard applies these settings for the current browser session, while the original YAML configuration remains unchanged."
 
-Restore the committed defaults before continuing.
+Temporarily disable a rule, re-run the synthetic demo, then restore the committed defaults.
 
-## 5. Validation and Reports — 60 seconds
+## 5. Validation and Reporting — 60 Seconds
 
 Open Validation & Performance.
 
-Run the labeled synthetic scenario validation and explain its limited scope.
+"I tested the detection engine using manually labeled synthetic scenarios and added tests for malformed inputs, unsafe XML declarations, file limits, and correlation edge cases.
 
-Then open Report Center and show the downloadable CSV/JSON investigation bundle.
+The scenario-level detection results are reproducible, but I do not treat them as real-world accuracy estimates."
 
-Explain that the SHA-256 manifest supports comparison of exported file contents against their recorded hashes.
+Open Report Center.
 
-## 6. Closing — 15 seconds
+"Finally, I can export structured investigation records as CSV and JSON files with SHA-256 integrity metadata."
 
-"The main engineering focus was preserving evidence traceability while supporting two log formats and multiple investigation workflows. I separated the Python security backend from the interface, added defensive input validation, and maintained automated regression tests."
+## 6. Closing — 15 Seconds
 
-## Limitations
+"The most important part of this project was maintaining evidence traceability while integrating multiple log formats, configurable detection rules, and two interfaces.
 
-Sentinel is a local portfolio prototype, not a production SIEM.
+I built the dashboard on top of the existing Python services and maintained regression tests throughout development."
 
-It does not provide live network monitoring, authenticated multi-user deployment or native binary EVTX parsing.
+## Additional Technical Discussion
 
-All demonstration figures are derived from bundled synthetic fixtures.
+For longer interviews, I can demonstrate:
+
+- The command-line workflow.
+- YAML rule validation and overrides.
+- Incident correlation boundaries.
+- Evidence source references.
+- Automated regression tests.
+- CSV/JSON reporting.
+- Defensive input validation.
+- Local deployment limitations.
+
+## Scope
+
+All example incidents come from synthetic authentication logs.
+
+Sentinel is a local prototype, not a production SIEM, live network monitor, or authenticated public application.

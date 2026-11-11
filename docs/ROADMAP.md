@@ -1,108 +1,116 @@
-# Official project roadmap — Phases 0–10
 
-**Phase 10 (Modern Web Dashboard) is REQUIRED.** One offline Python analysis backend
-powers both a CLI and a local browser-based user interface. No paid APIs, hosting,
-subscriptions, or public deployment are needed.
+# Sentinel — Development Roadmap
 
-| Phase | Milestone | Status | Reusable backend/dashboard relevance |
-|---|---|---|---|
-| 0 | Windows 11 development environment | Complete | Python 3.13, VS Code, Git verified |
-| 1 | Python package and Git foundation | Complete | Installable package and tests |
-| 2 | Linux/Windows ingestion & UTC normalization | Complete | `SecurityEvent`, `ingest_file()` |
-| 3 | YAML-based authentication detections | Complete | `detect_events()` and validated rules |
-| 4 | Event correlation | Complete | `investigate()` and incident records |
-| 5 | Evidence-linked investigation timelines | Complete | `attach_timelines()`, `investigate_with_timelines()` |
-| 6 | Advanced CLI & configuration | Complete | `analyze_raw_logs()`, `inspect_configuration()`, config/doctor CLI |
-| 7 | CSV/JSON reporting and exports | Complete | Shared export adapters for CLI and browser downloads |
-| 8 | Comprehensive security/scale/edge-case validation | Complete | Input-hardening and stable service contracts |
-| 9 | GitHub portfolio, docs and demo scenarios | Complete | Reproducible offline demonstrations |
-| 10 | Modern local web dashboard | **Implemented; Windows verification pending** | Streamlit UI calls backend services; uploads/charts/filters/timelines/downloads |
+**Project:** Python Security Automation & Log Correlation Toolkit  
+**Release:** 1.0.0  
+**Development status:** All 11 planned phases completed
 
-## Phase 6 interfaces
+## Project Goal
 
-The new `analyze` CLI uses `analyze_raw_logs()` to accept raw files directly and
-return complete investigation timelines without intermediate files. Settings
-are validated by `inspect_configuration()` and the existing safe YAML loaders.
+I developed Sentinel as an independent cybersecurity portfolio project to demonstrate how Python can support authentication log analysis, security detection, incident correlation, investigation, and reporting.
 
-```python
-from pathlib import Path
-from security_log_toolkit.workflow import RawLogSource, analyze_raw_logs
+I organized the development into 11 phases, progressing from foundational log processing to a functional local web dashboard.
 
-report = analyze_raw_logs(
-    [RawLogSource("windows", Path("samples/windows/attack_security.xml"))],
-    detection_rules=Path("config/detection_rules.yaml"),
-    correlation_rules=Path("config/correlation_rules.yaml"),
-)
-```
+## Completed Development Phases
 
-`analyze_raw_logs()` uses `investigate_events()` in correlation/service.py,
-which also powers the existing file-based `investigate()` function.
-The services are framework-neutral and return data rather than printing output.
+| Phase | Development Milestone | Status |
+|---|---|---|
+| 0 | Windows 11 environment, Python, VS Code and Git | Complete |
+| 1 | Python package structure and project foundation | Complete |
+| 2 | Linux/Windows log parsing and UTC normalization | Complete |
+| 3 | Configurable authentication detection engine | Complete |
+| 4 | Incident correlation | Complete |
+| 5 | Evidence-linked investigation timelines | Complete |
+| 6 | Unified CLI workflow and configuration diagnostics | Complete |
+| 7 | CSV/JSON reporting and investigation exports | Complete |
+| 8 | Security validation, edge-case tests and benchmarks | Complete |
+| 9 | GitHub documentation and reproducible portfolio demo | Complete |
+| 10 | Streamlit SOC dashboard | Complete |
 
-### Phase 10 UI implementation
+## Phase 0–2: Foundation and Data Processing
 
-The local dashboard now includes:
+I established the development environment and built a reusable Python package.
 
-- Upload of Linux `.log`/Windows `.xml` files with year/UTC inputs when needed
-- Analysis summary cards, charts for outcomes and rule severity
-- Searchable incident and finding tables with host/IP/account filters
-- Evidence-linked incident detail timelines and analyst summaries
-- Configuration inspector and adjustable rules with validation
-- CSV and JSON report downloads from shared Phase 7 exporters
+I implemented parsers for supported Linux OpenSSH authentication logs and Windows Security XML events, mapping them into a common event structure.
 
-Do not build a second detection engine inside the dashboard. Use the shared
-Python services. The interface is intended for **localhost** by default;
-private local use requires no external hosting.
+Normalization preserves timestamps, hostnames, accounts, source IPs, and original source references.
 
-## Evidence and input limitations
+## Phase 3–5: Detection and Investigation
 
-- Timelines represent linked detection evidence only, **not full log history**.
-- Detections are indicators for investigation, not proven compromise or attribution.
-- Correlation separates platforms/hosts/source IPs and respects time boundaries.
-- Linux OpenSSH syslog requires user-supplied year and UTC offset; Windows events
-  are XML 4624/4625 exports, not binary `.evtx`.
-- Raw logs can contain personal data; do not upload private logs to public services.
+I implemented YAML-configured authentication detection rules for:
 
-## Phase 7 reporting contract
+- Brute-force patterns.
+- Password spraying.
+- Successful authentication after suspicious failures.
 
-`security_log_toolkit.reporting.build_report_tables(report)` returns Python
-row lists suitable for charts, tables and filters. `build_export_artifacts(report,
-fmt)` returns deterministic in-memory bytes for CSV/JSON downloads, and
-`write_export_bundle()` writes them safely for the CLI. The Streamlit dashboard calls these services directly — no backend HTTP service is necessary.
+I then added incident correlation and chronological evidence-linked timelines.
 
-CSV sheets share `incident_id`, `finding_id`, and `evidence_id` references;
-timeline rows show linked evidence, **not complete security event history**.
-`export_manifest.json` includes SHA-256 digests for file integrity checking.
+Correlation respects platform, hostname, source IP, and configured time boundaries.
 
-## Phase 8 security and quality gates
+## Phase 6–7: CLI and Reporting
 
-- Offline raw input bounds (16 MiB), normalized JSON cap (32 MiB), timeline
-  import cap (50 MiB), and Linux single-line cap (65,536 characters).
-- Reject XML DTD and entity declarations. Continue to accept supported UTF-16 exports.
-- Manually labeled scenario-level validation (6 positive rule+IP pairs across four
-  synthetic logs), with clear caveats: **not production accuracy**.
-- Bounded in-memory throughput benchmark (100–5000 events, 2–10 repetitions).
-- Extensive negative tests and regression suite; keep CLI and exporters stable.
-- Framework-neutral validation functions feed the future **required** Phase 10 UI.
+I created an integrated command-line workflow for analyzing raw logs without manually generating intermediate files.
 
-See `docs/SECURITY_VALIDATION_GUIDE.md`.
+I added configuration inspection, environment diagnostics, readable investigation summaries, five CSV tables, JSON reports, and SHA-256 export manifests.
 
-## Phase 9 portfolio deliverables
+## Phase 8: Validation and Hardening
 
-- Recruiter-friendly README, accurate scope/limitations and a concise portfolio case study.
-- Editable Mermaid architecture, sequence and evidence-link diagrams.
-- Fully offline deterministic demonstration script consuming Phase 8 synthetic fixtures.
-- Offline Git-tracked-file publication preflight (not a comprehensive secret scan).
-- Optional **manual-only** GitHub Actions Python 3.13 Windows/Linux CI, **never publishing** anything automatically.
-- Private-by-default publication checklist and Phase 10 Streamlit handoff.
+I expanded automated coverage for malformed inputs, XML declarations, file-size limits, invalid configuration, and correlation edge cases.
 
-Phase 10 remains REQUIRED, with the local CLI and existing services retained.
+I implemented synthetic scenario validation and bounded in-memory performance benchmarking.
 
-## Phase 10 browser implementation
+These results are reproducible but are not production security certification or real-world detection accuracy measurements.
 
-- `dashboard/app.py`: responsive Streamlit interface with dark visual design and seven workspaces.
-- `security_log_toolkit.dashboard.service`: framework-neutral upload validation, temporary file processing, incident filters and CSV/JSON ZIP download bytes.
-- `.streamlit/config.toml`: loopback-only binding, XSRF/CORS enabled, usage stats disabled.
-- `docs/WEB_DASHBOARD_GUIDE.md`: complete setup, privacy limitations and manual Windows acceptance checklist.
+## Phase 9: Portfolio Documentation
 
-The dashboard code is implemented but **must pass the owner's Windows 11 browser acceptance** before the entire project is declared complete. The CLI remains a first-class supported interface.
+I prepared a reproducible synthetic demonstration, architecture diagrams, security documentation, testing instructions, and a publication-safety audit.
+
+These materials document both the system's capabilities and its limitations.
+
+## Phase 10: Sentinel Prism Dashboard
+
+I implemented the local Streamlit interface with seven workspaces:
+
+1. Command Center
+2. Log Intake
+3. Incident Explorer
+4. Evidence Timeline
+5. Detection Lab
+6. Validation & Performance
+7. Report Center
+
+I subsequently refined the presentation with light/dark appearance modes and a more structured security dashboard layout.
+
+The CLI remains independently functional and shares the same backend services.
+
+## Verification
+
+At the Phase 10 Windows acceptance milestone:
+
+- 460 automated tests passed.
+- All seven dashboard workspaces were manually verified.
+- The CLI remained functional.
+- Environment diagnostics returned READY.
+
+Newer UI revisions should be tested separately before reporting an updated passing-test count.
+
+## Current Scope
+
+Sentinel is a completed local cybersecurity portfolio prototype.
+
+It supports selected authentication log formats, not complete endpoint monitoring, network telemetry, or live SIEM ingestion.
+
+It does not provide an authenticated public multi-user service, native binary EVTX parsing, or automated incident response.
+
+## Future Enhancements
+
+These are ideas for possible future development, not unfinished requirements of the original 11-phase roadmap:
+
+- Additional authentication event sources.
+- Optional native EVTX support.
+- Larger-scale ingestion and streaming processing.
+- Broader automated integration tests.
+- Expanded investigation workflows.
+- Authenticated multi-user deployment architecture, subject to a separate security review.
+
+The original planned development roadmap is complete.

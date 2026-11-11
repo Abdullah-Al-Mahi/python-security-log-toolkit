@@ -1,129 +1,187 @@
-# Phase 10 — Sentinel Local SOC Dashboard
 
-**Status:** implemented in project source; must pass the owner's Windows 11
-browser acceptance test before the project is declared complete.
+# Sentinel Prism — Local Dashboard Guide
 
-## Safety and intended deployment
+**Application:** Sentinel Prism SOC Dashboard  
+**Version:** 1.0.0  
+**Status:** Implemented and accepted for local use
 
-- The interface is a **local single-user developer tool**, not a hardened,
-  authenticated, multi-user application. It has **no login system**.
-- `.streamlit/config.toml` binds the server to `127.0.0.1`. Never change this to
-  `0.0.0.0`, deploy it to the public internet, port-forward it, or put it behind
-  a public proxy when viewing real authentication data.
-- `browser.gatherUsageStats=false` disables Streamlit's usage-statistics setting.
-- Uploaded raw files are processed in a temporary directory, which is deleted
-  whether analysis succeeds or fails. **Streamlit's uploader and session state
-  may still retain data in server memory until cleared or the process exits**;
-  do not treat this as an audited data-erasure guarantee.
-- The UI never writes uploads or reports under `reports/` automatically. Downloads
-  are created in memory; the browser saves files only when you click Download.
-- The UI is offline from an analysis perspective. Installing dependencies via
-  pip requires an internet connection once; runtime uses no paid API or cloud.
-- Linux authentication logs require an explicit **year and original timezone
-  offset**. Windows input is *Security Event XML* (4624/4625), not `.evtx`.
-- Maximum uploads: **4** files, **16 MiB each**, **32 MiB combined**. Existing
-  investigation JSON imports are at most **50 MiB**. These are resource limits,
-  not a defense against every potentially malicious input.
-- Analyze only logs you are authorized to access. Review private data before
-  downloading or forwarding incident reports.
+## Overview
 
-## Install on Windows 11 / VS Code
+I built Sentinel Prism as an interactive interface over the existing Python security-analysis toolkit.
 
-From the root of your existing repository:
+The dashboard provides investigation summaries, log intake, incident filtering, evidence timelines, session-based detection configuration, synthetic validation, and report exports.
 
-```powershell
-Set-Location "$HOME\CyberSecurity-Projects\python-security-log-toolkit"
-.\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
-.\.venv\Scripts\python.exe -m security_log_toolkit --version
-.\.venv\Scripts\python.exe -m streamlit --version
-.\.venv\Scripts\python.exe -m pytest -q
+The CLI and dashboard share the same backend services.
+
+## Requirements
+
+- Python 3.13 or newer
+- Windows 11 or another supported Python environment
+- Streamlit and optional web dependencies
+- A modern browser
+
+## Installation
+
+Open a terminal at the repository root.
+
+For my Windows development environment, the project directory is:
+
+```text
+E:\CS PROJECTS\python-security-log-toolkit
 ```
 
-If the installation cannot find Streamlit, first confirm Windows has internet
-access and that pip can contact PyPI; do not install unofficial wheels. The web
-extra is optional: **the command-line toolkit remains runnable without it**.
+Create a virtual environment if one does not already exist:
 
-Start the browser interface with an explicit loopback bind:
+```powershell
+py -3.13 -m venv .venv
+```
+
+Install the dependencies:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,web]"
+```
+
+Start the local application:
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-Open **http://127.0.0.1:8501** in your local browser if it doesn't open
-itself. Keep this terminal open while using the dashboard. To stop the server,
-click inside the terminal and press **Ctrl+C**. No remote URL is generated.
+Open http://127.0.0.1:8501.
 
-## Sidebar sections / usage
+Stop the server with Ctrl+C in the terminal.
 
-1. **Command center:** immediately loads checked-in **synthetic** samples. The
-   baseline shows 29 normalized events, six findings, four incidents (two
-   critical, two high), and 22 linked evidence events. Use charts to compare
-   severity, rules, source IPs and timeline activity.
-2. **Log intake:** upload `.log`/`.txt` Linux syslog or Windows `.xml`. Enter
-   Linux year and UTC offset before clicking **Analyze uploaded logs**.
-   You may also import an existing toolkit investigation `.json` for review.
-   The UI does not automatically run processing when simply selecting a file.
-3. **Incident explorer:** filter by severity, platform, rule, host, IP, or
-   account. Select an incident to view analyst interpretation and linked
-   evidence. A login success after failures is **not** proof of compromise.
-4. **Evidence timeline:** inspect event stages, timestamps, source-file labels,
-   and linked evidence IDs. Timelines represent **linked detection evidence
-   only**, not every raw log record.
-5. **Detection lab:** modify rule enabled/severity/windows/thresholds and
-   correlation time limits **for this browser session**. Click **Apply**,
-   then re-run the synthetic demo or analyze another upload. The tracked YAML
-   files remain untouched. Download the adjusted YAML if you want to save it
-   for future manual review. **Reload synthetic demonstration** in the sidebar
-   always uses the committed default config instead.
-6. **Validation & performance:** run the existing manually labeled synthetic
-   accuracy exercise and bounded, in-memory performance benchmark. These do
-   **not** establish production detection accuracy or total ingest speed.
-7. **Report center:** download JSON, five related CSVs, the manifest, or one
-   ZIP containing all seven files. SHA-256 values protect integrity relative
-   to the manifest, **not authorship**.
+## Dashboard Workspaces
 
-Use **Clear investigation session** to remove the current report and config
-settings from app session state, reset the uploader widgets, and return to a
-blank investigation view. Stopping Streamlit closes the application process.
+### 1. Command Center
 
-## Backend contract
+The Command Center provides summary metrics, severity analysis, detection rule counts, source-IP insights, and linked evidence activity.
 
-`src/security_log_toolkit/dashboard/service.py` contains no Streamlit import.
-It uses `analyze_raw_logs()`, `inspect_configuration()`, `evaluate_scenarios()`,
-`run_benchmark()`, and Phase 7 `build_export_artifacts()` for the same behavior
-as CLI. The Streamlit presentation lives only in `dashboard/app.py`.
+The bundled synthetic demo contains:
 
-Use the download ZIP function directly in a Python script if needed:
+| Metric | Value |
+|---|---:|
+| Events | 29 |
+| Findings | 6 |
+| Incidents | 4 |
+| Linked evidence events | 22 |
 
-```python
-from pathlib import Path
-from security_log_toolkit.dashboard import load_synthetic_demo, build_dashboard_zip
-report = load_synthetic_demo(Path('.'))
-zip_bytes = build_dashboard_zip(report)
-```
+These values come from synthetic fixtures, not live network telemetry.
 
-## Testing and acceptance
+### 2. Log Intake
+
+The upload interface supports:
+
+- Linux OpenSSH `.log` and `.txt` files.
+- Windows Security Event XML `.xml` exports.
+- Existing toolkit investigation JSON files for review.
+
+Linux input requires an explicit calendar year and timezone offset.
+
+Binary `.evtx` input is not supported.
+
+Upload limits are 4 files, 16 MiB per raw file, and 32 MiB combined.
+
+### 3. Incident Explorer
+
+Investigations can be filtered using severity, platform, detection rule, source IP, hostname, account, or incident identifier.
+
+Case details display incident relationships and linked evidence.
+
+### 4. Evidence Timeline
+
+This workspace presents chronological linked authentication evidence with source references.
+
+The timeline is limited to detection-linked records and is not a complete forensic log history.
+
+### 5. Detection Lab
+
+I implemented session-only configuration controls for enabling rules and adjusting thresholds, time windows, severity, and correlation limits.
+
+Configuration changes affect new analyses. Existing investigation results are not automatically recomputed.
+
+The original YAML files remain unchanged unless deliberately modified outside the dashboard.
+
+### 6. Validation & Performance
+
+This workspace calls the backend's labeled synthetic scenario evaluator and bounded in-memory benchmark.
+
+Synthetic accuracy metrics are not estimates of real-world detection rates.
+
+Benchmark results do not include complete log ingestion, disk I/O, or UI rendering.
+
+### 7. Report Center
+
+The reporting workspace downloads:
+
+- `summary.csv`
+- `incidents.csv`
+- `findings.csv`
+- `evidence.csv`
+- `timelines.csv`
+- `investigation.json`
+- `export_manifest.json`
+
+The SHA-256 manifest supports integrity checking relative to its recorded hashes; it is not a digital signature.
+
+## Appearance
+
+Sentinel Prism includes light and dark appearance modes.
+
+The sidebar switch changes the interface appearance for the current browser session.
+
+Visual customization is implemented in:
+
+- `dashboard/app.py`
+- `dashboard/sentinel.css`
+- `.streamlit/config.toml`
+
+The theme does not change the analysis results.
+
+## Privacy and Security
+
+I designed the dashboard primarily for local, single-user operation.
+
+- The default server binds to `127.0.0.1`.
+- No application login system is implemented.
+- Raw uploads are processed through temporary files.
+- Temporary files are removed after analysis.
+- Streamlit may retain uploaded data in server memory during a session.
+- Reports are generated for local download rather than automatically published.
+- Input validation and size limits apply.
+
+The application should not be exposed directly to the public internet or used as an authenticated multi-user SOC platform.
+
+Only authorized logs should be analyzed.
+
+## Testing
+
+Run the regression suite:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m security_log_toolkit doctor
-.\.venv\Scripts\python.exe scripts/audit_portfolio.py
 ```
 
-With `.[dev,web]` installed, the suite also runs a genuine Streamlit AppTest
-smoke test. When Streamlit is not installed, that optional test is skipped.
+Check environment diagnostics:
 
-Manual acceptance on Windows 11:
+```powershell
+.\.venv\Scripts\python.exe -m security_log_toolkit doctor
+```
 
-- [ ] Dashboard opens at `http://127.0.0.1:8501` with no traceback.
-- [ ] Synthetic overview cards show 29 / 6 / 4 / 22.
-- [ ] Incident filters and timeline selection operate.
-- [ ] Upload sample Linux+Windows files from `samples/` and analyze.
-- [ ] Alter one detection setting, apply, re-run the demo; restore defaults.
-- [ ] Validation shows 4 scenarios and 6 TP / 0 FP / 0 FN.
-- [ ] Benchmark runs (e.g., 1000 events, 3 repetitions).
-- [ ] ZIP contains exactly 7 expected export files and the manifest matches.
-- [ ] CLI `status`, `doctor`, `analyze`, `report`, `export` still work.
-- [ ] Git remains clean after final commit and sensitive data was not published.
+At Phase 10 acceptance, 460 automated tests passed and all seven workspaces were manually verified on Windows 11.
 
-**Do not call the project finished until the owner verifies browser behavior.**
+Further UI updates require fresh tests.
+
+## Limitations
+
+Sentinel does not provide real-time network telemetry, native binary EVTX parsing, continuous enterprise log ingestion, production SIEM integrations, or automated response actions.
+
+The interface is a local investigation prototype that demonstrates the underlying Python security-analysis workflow.
+
+## Related Documentation
+
+- [Architecture](ARCHITECTURE.md)
+- [CLI Guide](CLI_GUIDE.md)
+- [Security Validation](SECURITY_VALIDATION_GUIDE.md)
+- [Reporting](REPORTING_GUIDE.md)

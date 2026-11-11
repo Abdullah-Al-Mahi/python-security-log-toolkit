@@ -1,147 +1,154 @@
 
 # Sentinel — Cybersecurity Engineering Case Study
 
-## Project Summary
+## Project Profile
 
 **Project:** Python Security Automation & Log Correlation Toolkit  
 **Interface:** Sentinel Prism SOC Dashboard  
-**Release:** Version 1.0.0  
-**Project Type:** Independent cybersecurity portfolio project  
-**Technologies:** Python, Streamlit, PyYAML, Pytest, Altair, Git, Windows Security XML, Linux SSH logs  
+**Version:** 1.0.0  
+**Project type:** Independent cybersecurity portfolio project  
+**Technologies:** Python, Streamlit, PyYAML, Pytest, Altair, Git, Linux SSH, Windows Security XML
 
-## 1. Problem
+## 1. Background
 
-Security analysts frequently investigate authentication events from multiple operating systems.
+I developed Sentinel to gain practical experience with security automation, authentication log analysis, incident correlation, and evidence-based investigation.
 
-Linux OpenSSH and Windows Security logs use different formats, fields and time representations. This makes manual review and correlation of suspicious login activity more difficult.
+My goal was to build something that could demonstrate how raw authentication records become structured, actionable investigation data.
 
-The goal was to develop a repeatable investigation workflow that could identify authentication attack patterns and preserve the underlying evidence.
+I focused on creating a functional Python toolkit rather than a dashboard with hard-coded security statistics.
 
-## 2. Solution
+## 2. Problem
 
-Sentinel is an offline-first Python security analysis application with two interfaces:
+Linux OpenSSH and Windows Security XML authentication records have different formats, field structures, and timestamp representations.
 
-- A command-line toolkit for scripted analysis and report generation.
-- A seven-workspace Streamlit dashboard for interactive investigation.
+Reviewing them manually makes it difficult to identify repeated authentication failures, password spraying, and sequences involving successful logins.
 
-Both interfaces share the same parsing, detection, correlation, validation and reporting services.
+Individual alerts also lack sufficient context unless their underlying evidence can be linked and inspected.
 
-## 3. Core Implementation
+## 3. My Approach
 
-### Log Processing
+I divided the project into reusable components:
 
-Implemented supported Linux SSH and Windows Security XML parsing, with normalized timestamps, hosts, accounts, source IPs and source references.
+1. Log ingestion and normalization.
+2. YAML-based authentication threat detection.
+3. Correlation of related detection findings.
+4. Evidence-linked investigation timelines.
+5. Structured CSV and JSON reporting.
+6. Security validation and automated testing.
+7. A Streamlit dashboard over the shared Python backend.
 
-### Threat Detection
+I completed the work incrementally, using Git commits and regression tests to protect functionality developed in earlier phases.
 
-Implemented configurable YAML-based rules for:
+## 4. Main Engineering Work
 
-- Repeated authentication failures consistent with brute-force activity.
-- Password spraying across multiple accounts.
+### Cross-Platform Event Normalization
+
+I implemented parsers for supported Linux OpenSSH logs and Windows Security XML events.
+
+The parsers normalize timestamp, account, host, platform, source IP, and event-reference fields for downstream processing.
+
+### Detection Rules
+
+I developed configurable rules to identify:
+
+- Repeated failed authentication attempts.
+- Password spraying patterns.
 - Successful authentication following suspicious failures.
+
+The YAML configuration allows thresholds and time windows to be adjusted without rewriting the detection engine.
 
 ### Incident Correlation
 
-Grouped related detection findings using platform, host, source IP and bounded time windows.
+I implemented correlation boundaries based on platform, hostname, source IP, and time.
 
-### Investigation and Reporting
+I tested scenarios involving separate hosts and interleaved source addresses to reduce incorrect grouping of unrelated activity.
 
-Generated evidence-linked timelines, analyst summaries, five structured CSV tables, JSON investigation reports and SHA-256 export manifests.
+### Evidence and Reporting
 
-### Interactive Interface
+I preserved relationships between findings, incidents, and source events.
 
-Developed Sentinel Prism using Streamlit, including investigation dashboards, filtering, charts, dark/light appearance modes, session-based rule configuration, validation and exports.
+Investigation outputs include chronological linked-evidence timelines, analyst summaries, five CSV tables, a full JSON report, and SHA-256 manifests.
 
-## 4. Security Engineering Decisions
+### Sentinel Prism Dashboard
 
-| Decision | Reason |
+I built a seven-workspace Streamlit interface for visually exploring investigations.
+
+The interface provides dark and light appearance modes, analytics charts, incident filters, evidence views, session-based detection controls, validation, and report downloads.
+
+Both the dashboard and CLI use the same analysis services.
+
+## 5. Defensive Design Decisions
+
+| Decision | Why I Chose It |
 |---|---|
-| Shared backend services | Avoid inconsistent behavior between the CLI and dashboard |
-| Explicit log time information | Prevent ambiguous Linux timestamp assumptions |
-| File-size limits | Reduce accidental and malicious resource consumption |
+| Shared backend | Keep CLI and dashboard results consistent |
+| File-size limits | Bound resource consumption |
 | XML DTD/entity rejection | Reduce exposure to unsafe XML declarations |
-| Validated YAML configuration | Reject malformed or unsupported rule settings |
-| Temporary raw-upload processing | Avoid persistent raw log files during dashboard analysis |
-| Evidence identifiers | Preserve traceability between findings, incidents and source events |
-| CSV formula safeguards | Reduce spreadsheet formula interpretation risk |
+| Schema-validated YAML | Reject malformed configuration |
+| Temporary raw file processing | Avoid persistent upload files during analysis |
+| Stable evidence references | Improve traceability |
+| CSV formula safeguards | Reduce spreadsheet injection risks |
+| Synthetic demonstration data | Provide reproducible testing without real private logs |
 
-These defenses improve robustness but do not make the application suitable for exposure as an unauthenticated public service.
+These safeguards reduce certain risks but do not make Sentinel production-hardened.
 
-## 5. Testing and Results
+## 6. Validation
 
-### Verified Development Milestone
+### Windows 11 Acceptance Milestone
 
-At the Phase 10 Windows acceptance milestone:
+At the completed Phase 10 acceptance milestone:
 
 - 460 automated tests passed.
-- All seven dashboard workspaces were manually accepted.
-- Existing CLI functionality remained operational.
-- The application returned READY during environment diagnostics.
+- All seven dashboard workspaces were manually verified.
+- The CLI remained operational.
+- Environment diagnostics reported READY.
+- The repository changes were committed.
 
-Later UI-only changes require fresh regression testing before a newer validation claim is made.
+Subsequent interface revisions should be retested before claiming an updated total.
 
-### Bundled Synthetic Investigation
+### Synthetic Investigation
 
-| Metric | Result |
+| Metric | Observed Result |
 |---|---:|
-| Normalized events | 29 |
-| Findings | 6 |
+| Normalized authentication events | 29 |
+| Detection findings | 6 |
 | Incidents | 4 |
 | Linked evidence entries | 22 |
-| Ground-truth scenarios | 4 |
+| Labeled scenarios | 4 |
 | Scenario-level TP / FP / FN | 6 / 0 / 0 |
 
-Synthetic scenario scores are not estimates of production detection accuracy.
+The validation dataset is small and synthetic. These numbers do not establish production detection accuracy or real-world false-positive rates.
 
-## 6. Technical Challenges
+## 7. Technical Challenges
 
-### Cross-Platform Normalization
+**Preserving evidence relationships:** I needed findings, incidents, and timelines to reference the correct source records rather than presenting untraceable alert counts.
 
-A shared event schema was necessary to analyze Windows and Linux authentication evidence consistently.
+**Keeping correlation boundaries reliable:** Different hosts, platforms, and IP addresses had to remain distinguishable.
 
-### Correlation Accuracy
+**Maintaining CLI compatibility:** Adding a browser interface could not require changing the behavior of earlier command-line workflows.
 
-Correlation boundaries needed to prevent unrelated hosts and source IPs from being incorrectly merged into one incident.
+**Presenting security information accurately:** I avoided representing authentication anomalies as confirmed attacks or inventing unsupported network metrics.
 
-### Evidence Integrity
+## 8. Limitations
 
-Reports and timelines needed to preserve event relationships and source references instead of showing only alert counts.
+Sentinel currently supports selected authentication events rather than complete endpoint or network telemetry.
 
-### Interface and Backend Separation
+It does not include native binary EVTX parsing, live SIEM ingestion, public multi-user deployment, application authentication, or production incident-response automation.
 
-The dashboard was designed as a presentation layer over the existing analysis engine rather than a duplicate implementation.
+Linked timelines represent detection evidence, not a complete forensic reconstruction.
 
-## 7. Scope and Limitations
+## 9. Demonstration
 
-Sentinel is a local single-user investigation prototype.
-
-It does not support native binary EVTX parsing, continuous SIEM ingestion, network traffic analysis, user authentication, public multi-user deployment or production response automation.
-
-A successful authentication after failures is an investigative signal, not proof of account compromise.
-
-The application should only process logs obtained with appropriate authorization.
-
-## 8. Demonstration
-
-Start the dashboard:
+The application runs locally using bundled synthetic data.
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run dashboard\app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-The bundled synthetic dataset allows an employer to explore the dashboard without sharing sensitive real-world security events.
+I can demonstrate the project through the [five-minute walkthrough](DEMO_WALKTHROUGH.md) and its [architecture documentation](ARCHITECTURE.md).
 
-See the [Demonstration Walkthrough](DEMO_WALKTHROUGH.md) and [System Architecture](ARCHITECTURE.md).
+## 10. Outcome
 
-## 9. Project Outcome
+Through Sentinel, I applied Python development, cybersecurity analysis, configurable detection logic, defensive input handling, automated testing, and interactive application design to an end-to-end investigation workflow.
 
-The completed project demonstrates practical application of:
-
-- Python security automation and log processing.
-- Authentication threat detection and incident correlation.
-- Evidence-focused security investigation.
-- Secure input handling and defensive validation.
-- Automated regression testing.
-- Interactive cybersecurity interface development.
-
-It is intended to demonstrate relevant skills for cybersecurity, SOC analyst, security engineering and IT infrastructure internship positions.
+The completed project serves as practical evidence of my technical skills for cybersecurity, SOC analysis, security engineering, and IT infrastructure internship opportunities.
